@@ -1,0 +1,14 @@
+.git
+.idea
+.env
+.gitignore
+.graphqlconfig
+gqlgen.yml
+Makefile
+README.md
+sqlc.json
+web
+graphql
+deployments
+build
+tmp

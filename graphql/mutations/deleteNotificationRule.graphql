@@ -1,0 +1,5 @@
+mutation DeleteNotificationRule($ruleId: bigint!) {
+  delete_notification_rule(where: { id: { _eq: $ruleId } }) {
+    affected_rows
+  }
+}

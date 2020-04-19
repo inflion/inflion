@@ -1,0 +1,5 @@
+mutation CreateProjectInvitation($input: project_invitation_insert_input!) {
+  insert_project_invitation_one(object: $input) {
+    project_id
+  }
+}
