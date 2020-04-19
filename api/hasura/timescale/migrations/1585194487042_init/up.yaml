@@ -1,0 +1,16 @@
+- args:
+    tables:
+    - select_permissions:
+      - permission:
+          columns:
+          - instance_id
+          - time
+          - type
+          - value
+          filter: {}
+        role: user
+      table:
+        name: metrics
+        schema: public
+    version: 2
+  type: replace_metadata

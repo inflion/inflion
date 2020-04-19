@@ -1,0 +1,5 @@
+mutation DeleteAction($id: bigint!) {
+  delete_action(where: { id: { _eq: $id } }) {
+    affected_rows
+  }
+}
