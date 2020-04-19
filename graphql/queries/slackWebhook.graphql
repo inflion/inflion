@@ -1,0 +1,8 @@
+query GetSlackWebHookSettings($projectId: bigint!) {
+  slack_webhook(where: { project_id: { _eq: $projectId } }) {
+    id
+    name
+    webhook_url
+    channel
+  }
+}

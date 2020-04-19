@@ -1,0 +1,262 @@
+version: "3.7"
+
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.server.air.conf
+    depends_on:
+      - db
+      - timescale
+      - nsqd
+      - mailhog
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    ports:
+      - "${WEB_PORT}:8080"
+      - 2345:2345
+      - 5001:5001
+    environment:
+      DOMAIN: "${DOMAIN}"
+      WEB_EXTERNAL_PORT: "${WEB_EXTERNAL_PORT}"
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
+      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
+      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
+      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
+      AWS_SDK_LOAD_CONFIG: 0
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      RUN_ENV: dev
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+
+  collector:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.collector.air.conf
+    depends_on:
+      - db
+      - nsqd
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      AWS_SDK_LOAD_CONFIG: 0
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      RUN_ENV: dev
+
+  consumer:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.consumer.air.conf
+    depends_on:
+      - timescale
+      - nsqd
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
+      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
+      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
+      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
+      RUN_ENV: dev
+
+  monitor:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.monitor.air.conf
+    depends_on:
+      - db
+      - timescale
+      - nsqd
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
+      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
+      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
+      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      RUN_ENV: dev
+
+  syncer:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.syncer.air.conf
+    depends_on:
+      - db
+      - timescale
+      - nsqd
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
+      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
+      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
+      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      RUN_ENV: dev
+
+  broker:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.broker.air.conf
+    depends_on:
+      - db
+      - timescale
+      - nsqd
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
+      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
+      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
+      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
+      NSQLOOKUPD_HOST: ${NSQLOOKUPD_HOST}
+      NSQLOOKUPD_PORT: ${NSQLOOKUPD_PORT}
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      RUN_ENV: dev
+
+  db:
+    image: postgres:12.1
+    environment:
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
+      TZ: "Asia/Tokyo"
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_EXTERNAL_PORT}:${DB_INTERNAL_PORT}"
+
+  timescale:
+    image: timescale/timescaledb:latest-pg11
+    environment:
+      POSTGRES_USER: "${TIMESCALE_DB_USERNAME}"
+      POSTGRES_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
+    restart: always
+    ports:
+      - "${TIMESCALE_DB_EXTERNAL_PORT}:${TIMESCALE_DB_INTERNAL_PORT}"
+
+  hasura:
+    image: hasura/graphql-engine:v1.2.0-beta.2
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+      - api
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: 'postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_DATABASE}'
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: '${HASURA_GRAPHQL_ADMIN_SECRET}'
+      HASURA_GRAPHQL_JWT_SECRET: '${HASURA_GRAPHQL_JWT_SECRET}'
+
+  hasurats:
+    image: hasura/graphql-engine:v1.2.0-beta.2
+    ports:
+      - 8081:8080
+    depends_on:
+      - timescale
+      - api
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: 'postgres://${TIMESCALE_DB_USERNAME}:${TIMESCALE_DB_PASSWORD}@${TIMESCALE_DB_HOST}:${TIMESCALE_DB_INTERNAL_PORT}/${TIMESCALE_DB_DATABASE}'
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: '${HASURA_GRAPHQL_ADMIN_SECRET}'
+      HASURA_GRAPHQL_JWT_SECRET: '${HASURA_GRAPHQL_JWT_SECRET}'
+
+  nsqlookupd:
+    image: nsqio/nsq
+    command: /nsqlookupd
+    restart: always
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+  nsqd:
+    image: nsqio/nsq
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160
+    depends_on:
+      - nsqlookupd
+    restart: always
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+  nsqadmin:
+    image: nsqio/nsq
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    restart: always
+    depends_on:
+      - nsqlookupd
+    ports:
+      - "4171:4171"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
+
+volumes:
+  db-data:
+    driver: local

@@ -1,0 +1,15 @@
+query awsInstances($projectId: ID!) {
+  aws_instances(projectId: $projectId) {
+    instanceId
+    name
+    status
+    privateAddress
+    publicAddress
+    tags {
+      tags {
+        key
+        value
+      }
+    }
+  }
+}

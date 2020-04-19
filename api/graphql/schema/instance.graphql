@@ -1,0 +1,18 @@
+type Tag {
+    key: String!
+    value: String!
+}
+
+type Tags {
+    tags: [Tag]!
+}
+
+type AwsInstance {
+    instanceId: String!
+    name: String!
+    privateAddress: String!
+    publicAddress: String!
+    securityGroupIds: [String!]!
+    tags: Tags!
+    status: String!
+}

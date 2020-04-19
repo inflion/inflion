@@ -1,0 +1,35 @@
+schema:
+  - "api/graphql/schema/**/*.graphql"
+
+omit_slice_element_pointers: true
+
+exec:
+  filename: api/graphql/generated.go
+  package: graphql
+
+resolver:
+  filename: api/graphql/resolver.go
+  type: Resolver
+  package: graphql
+
+models:
+  AwsInstance:
+    model: github.com/inflion/inflion/internal/paws.AwsInstance
+  Tags:
+    model: github.com/inflion/inflion/internal/paws.Tags
+  Tag:
+    model: github.com/inflion/inflion/internal/paws.Tag
+  Project:
+    model: github.com/inflion/inflion/internal/store.Project
+    fields:
+      databaseId:
+        fieldName: ID
+  UserAccount:
+    model: github.com/inflion/inflion/internal/store.UserAccount
+    fields:
+      databaseId:
+        fieldName: ID
+  ID:
+    model: # override the default id marshaller to use ints
+      - github.com/99designs/gqlgen/graphql.IntID
+      - github.com/99designs/gqlgen/graphql.ID
