@@ -1,0 +1,11 @@
+mutation CreateSlackWebhook($input: slack_webhook_insert_input!) {
+  insert_slack_webhook_one(
+    object: $input
+    on_conflict: {
+      constraint: slack_webhook_pkey
+      update_columns: [name, webhook_url, channel]
+    }
+  ) {
+    id
+  }
+}

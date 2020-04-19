@@ -1,0 +1,6 @@
+query GetServices {
+  service {
+    id
+    name
+  }
+}

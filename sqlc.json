@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "packages": [
+    {
+      "name": "store",
+      "path": "internal/store",
+      "schema": "internal/store/schema",
+      "queries": "internal/store/query",
+      "emit_prepared_queries": true,
+      "emit_interface": true,
+      "engine": "postgresql"
+    },
+    {
+      "name": "timescale",
+      "path": "internal/timescale",
+      "schema": "internal/timescale/schema",
+      "queries": "internal/timescale/query",
+      "emit_prepared_queries": true,
+      "emit_interface": true,
+      "engine": "postgresql"
+    }
+  ]
+}

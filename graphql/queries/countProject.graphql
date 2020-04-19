@@ -1,0 +1,7 @@
+query countProject($name: String!) {
+  project_aggregate(where: { name: { _eq: $name } }) {
+    aggregate {
+      count
+    }
+  }
+}

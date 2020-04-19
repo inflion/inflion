@@ -1,0 +1,7 @@
+query NotificationRules($projectId: bigint!) {
+  notification_rule(where: { project_id: { _eq: $projectId } }) {
+    id
+    rule_name
+    rules
+  }
+}
