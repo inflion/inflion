@@ -35,7 +35,7 @@ const DeleteButton = styled(Button)`
 export type Action = {
   id: bigint | undefined;
   name: string;
-  body: object;
+  body: string;
 };
 
 type OptionalId = bigint | undefined;
@@ -51,7 +51,7 @@ export type ActionContextProps = {
   setEditingId: (id: OptionalId) => void;
 };
 
-const emptyAction: Action = { id: undefined, name: '', body: {} };
+const emptyAction: Action = { id: undefined, name: '', body: '' };
 
 export const ActionContext = React.createContext<Partial<ActionContextProps>>({});
 
@@ -65,7 +65,7 @@ export const Action = () => {
   const [action, setStateAction] = React.useState<Action>({
     id: undefined,
     name: '',
-    body: {},
+    body: '',
   });
   const [editing, setEdit] = React.useState(false);
   const [editingId, setEditingId] = React.useState<OptionalId>(undefined);
@@ -79,7 +79,7 @@ export const Action = () => {
     clearError,
     reset: resetForm,
     setError,
-  } = useForm<ActionInsertInput>();
+  } = useForm<Action>();
 
   const isObject = (x: unknown): x is object =>
     x !== null && (typeof x === 'object' || typeof x === 'function');
@@ -89,7 +89,7 @@ export const Action = () => {
     setValue('name', action.name);
 
     if (isObject(action.body)) {
-      // setValue('body', JSON.stringify(action.body, null, 2));
+      setValue('body', JSON.stringify(action.body, null, 2));
     } else {
       setValue('body', action.body);
     }
@@ -201,7 +201,7 @@ export const Action = () => {
                   errors.body && errors.body.message
                   // 'The name may only contain alphanumeric characters or single hyphens or underscore, and cannot begin or end with a hyphen. '
                 }
-                InputLabelProps={{ shrink: action?.body !== {} }}
+                InputLabelProps={{ shrink: action?.body !== '' }}
                 onChange={handleOnChange}
                 inputRef={register({
                   required: true,
