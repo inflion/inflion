@@ -12,13 +12,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/inflion/inflion/internal/instance/infra/providers/aws/metrics"
-	"time"
+	"github.com/inflion/inflion/internal/paws"
 )
 
 func main() {
@@ -26,56 +22,25 @@ func main() {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	arn := "arn:aws:iam::AWS_ID:role/assumerole"
-	externalId := ""
-	region := "ap-northeast-1"
-
-	conf := createConfig(arn, externalId, region, sess)
-	svc := cloudwatch.New(sess, &conf)
+	cw := cloudwatch.New(sess)
 
 	metricNames := []string{
 		"CPUUtilization",
 		"StatusCheckFailed",
 	}
 
-	ns := "AWS/EC2"
+	namespace := "AWS/EC2"
 
-	m := metrics.Metrics{CloudWatch: svc, Namespace: ns}
-	md := metrics.NewMetricsData(svc, ns, metrics.TimeWindow{
-		StartTime: 60 * 10 * 10 * 10,
-		EndTime:   0,
-		Period:    60,
-	})
-
+	m := paws.NewMetrics(cw, namespace)
 	metricList := m.ListMetrics(metricNames)
 
-	results := md.ParallelGetMetricData(metricList)
-
-	for _, result := range results {
-		fmt.Printf("%s: %s at %s\n", result.Name, result.Value, time.Unix(result.Time, 0))
-	}
-}
-
-func createConfig(arn string, externalID string, region string, sess *session.Session) (conf aws.Config) {
-	conf = aws.Config{Region: aws.String(region)}
-
-	if arn == "" {
-		return
+	tw := paws.TimeWindow{
+		StartTime: 60 * 60 * 3,
+		EndTime:   0,
+		Period:    10,
 	}
 
-	// if ARN flag is passed in, we need to be able ot assume role here
-	var creds *credentials.Credentials
-
-	if externalID != "" {
-		// If externalID flag is passed, we need to include it in credentials struct
-		creds = stscreds.NewCredentials(sess, arn, func(p *stscreds.AssumeRoleProvider) {
-			p.ExternalID = &externalID
-		})
-	} else {
-		creds = stscreds.NewCredentials(sess, arn, func(p *stscreds.AssumeRoleProvider) {})
-	}
-
-	conf.Credentials = creds
-
-	return
+	md := paws.NewMetricsData(cw, namespace, tw)
+	data := md.GetMetricData(metricList)
+	fmt.Println(data)
 }
