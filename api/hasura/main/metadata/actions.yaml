@@ -1,0 +1,15 @@
+actions:
+- name: confirmInvitation
+  definition:
+    kind: synchronous
+    handler: http://api:8080/project/invitation/confirm
+    forward_client_headers: true
+  permissions:
+  - role: user
+custom_types:
+  enums: []
+  input_objects:
+  - name: ConfirmInvitationInput
+  objects:
+  - name: ConfirmInvitationOutput
+  scalars: []
