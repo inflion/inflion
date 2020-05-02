@@ -1,0 +1,454 @@
+- table:
+    schema: public
+    name: action
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+      - body
+      - id
+      - name
+      - project_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - body
+      - id
+      - name
+      - project_id
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - body
+      - name
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: aws_account
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  - name: user_account
+    using:
+      foreign_key_constraint_on: user_id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+      - account_id
+      - external_id
+      - id
+      - project_id
+      - role_name
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - account_id
+      - created_at
+      - external_id
+      - id
+      - project_id
+      - role_name
+      - updated_at
+      - user_id
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - account_id
+      - external_id
+      - project_id
+      - role_name
+      - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+      set:
+        user_id: x-hasura-User-Id
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: instance
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - instance_id
+      - name
+      - project_id
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: instance_at_service
+- table:
+    schema: public
+    name: notification_rule
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+      - id
+      - project_id
+      - rule_name
+      - rules
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - id
+      - project_id
+      - rules
+      - rule_name
+      - updated_at
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - rule_name
+      - rules
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: organization
+  array_relationships:
+  - name: project_in_organizations
+    using:
+      foreign_key_constraint_on:
+        column: organization_id
+        table:
+          schema: public
+          name: project_in_organization
+- table:
+    schema: public
+    name: project
+  object_relationships:
+  - name: user_account
+    using:
+      foreign_key_constraint_on: user_id
+  array_relationships:
+  - name: aws_accounts
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: aws_account
+  - name: instances
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: instance
+  - name: project_collaborators
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: project_collaborator
+  - name: project_in_organizations
+    using:
+      foreign_key_constraint_on:
+        column: project_id
+        table:
+          schema: public
+          name: project_in_organization
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+      - description
+      - name
+      - user_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      - description
+      - created_at
+      - updated_at
+      - name
+      - user_id
+      filter:
+        project_collaborators:
+          user_id:
+            _eq: X-Hasura-User-Id
+      allow_aggregations: true
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - name
+      filter:
+        project_collaborators:
+          user_id:
+            _eq: X-Hasura-User-Id
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  event_triggers:
+  - name: project_added
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      num_retries: 0
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://api:8080/project/added
+- table:
+    schema: public
+    name: project_collaborator
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - project_id
+      - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: project_in_organization
+  object_relationships:
+  - name: organization
+    using:
+      foreign_key_constraint_on: organization_id
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+- table:
+    schema: public
+    name: project_invitation
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        invitee_user_id: x-hasura-User-Id
+      columns:
+      - mail_address
+      - project_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - mail_address
+      - project_id
+      - updated_at
+      filter:
+        invitee_user_id:
+          _eq: X-Hasura-User-Id
+  event_triggers:
+  - name: project_invitation
+    definition:
+      enable_manual: true
+      insert:
+        columns: '*'
+    retry_conf:
+      num_retries: 3
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://api:8080/project/invite
+- table:
+    schema: public
+    name: service
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - id
+      - name
+      - project_id
+      - updated_at
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: slack_webhook
+  object_relationships:
+  - name: project
+    using:
+      foreign_key_constraint_on: project_id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+      - channel
+      - id
+      - name
+      - project_id
+      - webhook_url
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - channel
+      - created_at
+      - id
+      - name
+      - project_id
+      - updated_at
+      - webhook_url
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - channel
+      - name
+      - webhook_url
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        project:
+          project_collaborators:
+            user_id:
+              _eq: X-Hasura-User-Id
+- table:
+    schema: public
+    name: user_account
+  array_relationships:
+  - name: aws_accounts
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: aws_account
+  - name: projects
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: project
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - email
+      - id
+      - updated_at
+      - username
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
