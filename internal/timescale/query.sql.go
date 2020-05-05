@@ -37,15 +37,17 @@ SELECT count(time)
 FROM metrics
 WHERE time = $1
   AND type = $2
+  AND instance_id = $3
 `
 
 type CountCpuUtilizationParams struct {
-	Time time.Time
-	Type string
+	Time       time.Time
+	Type       string
+	InstanceID string
 }
 
 func (q *Queries) CountCpuUtilization(ctx context.Context, arg CountCpuUtilizationParams) (int64, error) {
-	row := q.queryRow(ctx, q.countCpuUtilizationStmt, countCpuUtilization, arg.Time, arg.Type)
+	row := q.queryRow(ctx, q.countCpuUtilizationStmt, countCpuUtilization, arg.Time, arg.Type, arg.InstanceID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
