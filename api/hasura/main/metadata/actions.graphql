@@ -1,0 +1,18 @@
+type Mutation {
+  confirmInvitation (
+    input: ConfirmInvitationInput!
+  ): ConfirmInvitationOutput!
+}
+
+
+
+
+input ConfirmInvitationInput {
+  token : String!
+}
+
+type ConfirmInvitationOutput {
+  __typename : String!
+  result : Boolean!
+}
+
