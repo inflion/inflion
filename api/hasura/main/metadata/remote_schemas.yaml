@@ -1,1 +1,12 @@
-[]
+- name: api
+  definition:
+    url: http://api:8080/graphql
+    timeout_seconds: 60
+    forward_client_headers: true
+- name: hasurats
+  definition:
+    url: http://hasurats:8080/v1/graphql
+    timeout_seconds: 60
+    headers:
+    - value: inflion
+      name: x-hasura-admin-secret
