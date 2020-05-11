@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS action
     created_at TIMESTAMP                                 NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP                                 NOT NULL DEFAULT NOW()
 );
+-- +migrate Down
+DROP TABLE IF EXISTS action;

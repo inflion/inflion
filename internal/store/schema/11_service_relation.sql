@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS instance_at_service
     created_at  TIMESTAMP                       NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP                       NOT NULL DEFAULT NOW()
 );
+-- +migrate Down
+DROP TABLE IF EXISTS instance_at_service;

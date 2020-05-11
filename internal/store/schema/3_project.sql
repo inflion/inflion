@@ -1,3 +1,5 @@
+-- +migrate Up
+-- +migrate StatementBegin
 CREATE TABLE IF NOT EXISTS project
 (
     id          BIGSERIAL PRIMARY KEY,
@@ -14,3 +16,7 @@ CREATE TABLE IF NOT EXISTS project_in_organization
     organization_id BIGINT REFERENCES organization (id) NOT NULL,
     PRIMARY KEY (project_id, organization_id)
 );
+-- +migrate StatementEnd
+-- +migrate Down
+DROP TABLE IF EXISTS project;
+DROP TABLE IF EXISTS project_in_organization;
