@@ -14,9 +14,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/inflion/inflion/internal/timescale"
 	_ "github.com/lib/pq"
 	"github.com/nsqio/go-nsq"
-	"github.com/inflion/inflion/internal/timescale"
 	"log"
 	"time"
 )
@@ -52,8 +52,9 @@ func (h *messageHandler) HandleMessage(m *nsq.Message) error {
 	}
 
 	countParams := timescale.CountCpuUtilizationParams{
-		Time: time.Unix(msg.Time, 0),
-		Type: msg.Type,
+		Time:       time.Unix(msg.Time, 0),
+		Type:       msg.Type,
+		InstanceID: msg.InstanceId,
 	}
 
 	count, _ := h.query.CountCpuUtilization(ctx, countParams)

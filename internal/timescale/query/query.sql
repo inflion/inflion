@@ -20,7 +20,8 @@ RETURNING time;
 SELECT count(time)
 FROM metrics
 WHERE time = $1
-  AND type = $2;
+  AND type = $2
+  AND instance_id = $3;
 
 
 -- name: Average :one
