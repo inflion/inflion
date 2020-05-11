@@ -145,13 +145,13 @@ func (c *collector) produceMetrics(metricTable []paws.MetricData) {
 			Value:      v,
 		}
 
-		json, err := json.Marshal(m)
+		bytes, err := json.Marshal(m)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		err = c.producer.produce(json)
+		err = c.producer.produce(bytes)
 		if err != nil {
 			log.Println(err)
 		}
