@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE instance
 (
     id          BIGSERIAL PRIMARY KEY,

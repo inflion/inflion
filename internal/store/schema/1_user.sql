@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS user_account
 (
     id         VARCHAR(255) NOT NULL PRIMARY KEY,

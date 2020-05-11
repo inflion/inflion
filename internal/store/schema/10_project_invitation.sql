@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS project_invitation
 (
     id              BIGSERIAL PRIMARY KEY,

@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS slack_webhook
 (
     id          BIGSERIAL PRIMARY KEY,
