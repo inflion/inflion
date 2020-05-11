@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS aws_account
 (
     id          BIGSERIAL PRIMARY KEY,

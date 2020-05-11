@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS instance_at_service
 (
     id          BIGSERIAL PRIMARY KEY,

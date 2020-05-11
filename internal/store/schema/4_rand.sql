@@ -1,3 +1,5 @@
+-- +migrate Up
+-- +migrate StatementBegin
 CREATE OR REPLACE FUNCTION public.rand()
     RETURNS text
     LANGUAGE sql
@@ -9,3 +11,4 @@ SELECT array_to_string(array(select substr('abcdefghikjlmnopqrstuvwxyzABCDEFGHIJ
                              from generate_series(1, 24)), '');
 
 $function$
+-- +migrate StatementEnd
