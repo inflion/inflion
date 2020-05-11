@@ -10,3 +10,5 @@ CREATE TABLE instance
     project_id  BIGSERIAL REFERENCES project (id) NOT NULL,
     UNIQUE (instance_id)
 );
+-- +migrate Down
+DROP TABLE IF EXISTS instance;

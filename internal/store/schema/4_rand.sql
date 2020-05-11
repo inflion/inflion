@@ -12,3 +12,5 @@ SELECT array_to_string(array(select substr('abcdefghikjlmnopqrstuvwxyzABCDEFGHIJ
 
 $function$
 -- +migrate StatementEnd
+-- +migrate Down
+DROP FUNCTION IF EXISTS public.rand();
