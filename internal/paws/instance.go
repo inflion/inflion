@@ -12,27 +12,32 @@ package paws
 
 import (
 	"errors"
-	"log"
-
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 type InstanceID *string
 
 type AwsInstance struct {
-	InstanceID       string
-	Name             string
-	PrivateAddress   string
-	PublicAddress    string
-	Tags             Tags
-	SecurityGroupIds []string
-	Status           string
+	InstanceID     string
+	Name           string
+	PrivateAddress string
+	PublicAddress  string
+	Tags           Tags
+	SecurityGroups []SecurityGroup
+	Status         string
 }
 
 type CreateInstanceParameter struct {
 	Ami    string
 	Family string
+}
+
+type SecurityGroup struct {
+	Id   string
+	Name string
 }
 
 func createInput(instanceId string) *ec2.DescribeTagsInput {
@@ -73,6 +78,29 @@ func (a *Api) GetInstance(instanceId string) (*AwsInstance, error) {
 	}
 
 	return nil, errors.New("instance not found")
+}
+
+func (a *Api) DescribeSecurityGroup(groupIds []*string) {
+	input := &ec2.DescribeSecurityGroupsInput{
+		GroupIds: groupIds,
+	}
+	result, err := a.conn.DescribeSecurityGroups(input)
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				log.Error(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			log.Error(err.Error())
+		}
+		return
+	}
+
+	fmt.Print(result)
 }
 
 type FilterCondition struct {
@@ -120,7 +148,7 @@ func (a *Api) CreateInstance(parameter CreateInstanceParameter) (InstanceID, err
 	})
 
 	if err != nil {
-		log.Println("could not create instance", err)
+		log.Error("could not create instance", err)
 		return nil, err
 	}
 
@@ -133,7 +161,7 @@ func (a *Api) TerminateInstance(instanceId InstanceID) (InstanceID, error) {
 		InstanceIds: []*string{instanceId},
 	})
 	if err != nil {
-		log.Println("could not terminate instance", err)
+		log.Error("could not terminate instance", err)
 		return nil, err
 	}
 
@@ -155,11 +183,11 @@ func (a *Api) convertAwsInstances(reservations []*ec2.Reservation) []*AwsInstanc
 			}
 
 			ec2Instance.Status = aws.StringValue(instance.State.Name)
-			ec2Instance.SecurityGroupIds = a.convertSecurityGroup(instance.SecurityGroups)
+			ec2Instance.SecurityGroups = a.convertSecurityGroup(instance.SecurityGroups)
 
 			awsTags, err := a.conn.DescribeTags(createInput(ec2Instance.InstanceID))
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 			}
 
 			tags := a.convertAwsTagsToTags(awsTags)
@@ -183,10 +211,14 @@ func (a *Api) convertAwsTagsToTags(awsTags *ec2.DescribeTagsOutput) Tags {
 	return tags
 }
 
-func (a *Api) convertSecurityGroup(securityGroups []*ec2.GroupIdentifier) []string {
-	var result = []string{}
+func (a *Api) convertSecurityGroup(securityGroups []*ec2.GroupIdentifier) []SecurityGroup {
+	var result []SecurityGroup
+
 	for _, sg := range securityGroups {
-		result = append(result, aws.StringValue(sg.GroupId))
+		result = append(result, SecurityGroup{
+			Id:   *sg.GroupId,
+			Name: *sg.GroupName,
+		})
 	}
 	return result
 }

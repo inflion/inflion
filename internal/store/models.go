@@ -96,6 +96,12 @@ type ProjectInvitation struct {
 	UpdatedAt     time.Time
 }
 
+type SecurityGroup struct {
+	ID                int64
+	SecurityGroupID   string
+	SecurityGroupName string
+}
+
 type Service struct {
 	ID        int64
 	ProjectID int64

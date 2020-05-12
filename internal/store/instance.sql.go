@@ -7,6 +7,21 @@ import (
 	"context"
 )
 
+const createSecurityGroup = `-- name: CreateSecurityGroup :exec
+INSERT INTO security_group (security_group_id, security_group_name)
+VALUES ($1, $2)
+`
+
+type CreateSecurityGroupParams struct {
+	SecurityGroupID   string
+	SecurityGroupName string
+}
+
+func (q *Queries) CreateSecurityGroup(ctx context.Context, arg CreateSecurityGroupParams) error {
+	_, err := q.exec(ctx, q.createSecurityGroupStmt, createSecurityGroup, arg.SecurityGroupID, arg.SecurityGroupName)
+	return err
+}
+
 const resolveIdByInstanceId = `-- name: ResolveIdByInstanceId :one
 SELECT id
 FROM instance

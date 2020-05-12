@@ -16,7 +16,7 @@ import (
 	"log"
 )
 
-// SecurityGroup Monitor
+// PawsSg Monitor
 type sgMonitor struct {
 	monitor *Monitor
 }

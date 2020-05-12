@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"log"
 	"strings"
 )
 
@@ -43,13 +42,13 @@ func (o *OpenPorts) Length() int {
 	return len(o.ports)
 }
 
-type SecurityGroup struct {
+type PawsSg struct {
 	Id               string
 	Name             string
 	rawSecurityGroup *ec2.SecurityGroup
 }
 
-func (s *SecurityGroup) GetOpenPorts() *OpenPorts {
+func (s *PawsSg) GetOpenPorts() *OpenPorts {
 	var openPorts []int64
 	for _, p := range s.rawSecurityGroup.IpPermissions {
 		for _, r := range p.IpRanges {
@@ -61,7 +60,7 @@ func (s *SecurityGroup) GetOpenPorts() *OpenPorts {
 	return &OpenPorts{ports: openPorts}
 }
 
-func (s *SecurityGroup) HasOpenPorts() bool {
+func (s *PawsSg) HasOpenPorts() bool {
 	return s.GetOpenPorts().Length() != 0
 }
 
@@ -75,8 +74,8 @@ func NewAwsSecurityGroup(awsAccount AwsAccount, region string) AwsSecurityGroup 
 	return AwsSecurityGroup{ec2: ec2.New(sess, &conf)}
 }
 
-func (s *AwsSecurityGroup) GetSecurityGroups() ([]SecurityGroup, error) {
-	var securityGroups []SecurityGroup
+func (s *AwsSecurityGroup) GetSecurityGroups() ([]PawsSg, error) {
+	var securityGroups []PawsSg
 
 	result, err := s.ec2.DescribeSecurityGroups(nil)
 	if err != nil {
@@ -93,7 +92,7 @@ func (s *AwsSecurityGroup) GetSecurityGroups() ([]SecurityGroup, error) {
 
 	for _, sg := range result.SecurityGroups {
 		securityGroups = append(securityGroups,
-			SecurityGroup{
+			PawsSg{
 				Id:               aws.StringValue(sg.GroupId),
 				Name:             aws.StringValue(sg.GroupName),
 				rawSecurityGroup: sg,

@@ -16,3 +16,7 @@ FROM instance
 WHERE
   instance_id = $1
 LIMIT 1;
+
+-- name: CreateSecurityGroup :exec
+INSERT INTO security_group (security_group_id, security_group_name)
+VALUES ($1, $2);

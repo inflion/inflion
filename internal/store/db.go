@@ -34,6 +34,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countProjectCollaboratorByUserIdStmt, err = db.PrepareContext(ctx, countProjectCollaboratorByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query CountProjectCollaboratorByUserId: %w", err)
 	}
+	if q.createSecurityGroupStmt, err = db.PrepareContext(ctx, createSecurityGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSecurityGroup: %w", err)
+	}
 	if q.getActionsStmt, err = db.PrepareContext(ctx, getActions); err != nil {
 		return nil, fmt.Errorf("error preparing query GetActions: %w", err)
 	}
@@ -87,6 +90,11 @@ func (q *Queries) Close() error {
 	if q.countProjectCollaboratorByUserIdStmt != nil {
 		if cerr := q.countProjectCollaboratorByUserIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countProjectCollaboratorByUserIdStmt: %w", cerr)
+		}
+	}
+	if q.createSecurityGroupStmt != nil {
+		if cerr := q.createSecurityGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSecurityGroupStmt: %w", cerr)
 		}
 	}
 	if q.getActionsStmt != nil {
@@ -182,6 +190,7 @@ type Queries struct {
 	allAwsAccountStmt                    *sql.Stmt
 	confirmInvitationStmt                *sql.Stmt
 	countProjectCollaboratorByUserIdStmt *sql.Stmt
+	createSecurityGroupStmt              *sql.Stmt
 	getActionsStmt                       *sql.Stmt
 	getAwsAccountStmt                    *sql.Stmt
 	getInvitationByTokenStmt             *sql.Stmt
@@ -202,6 +211,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		allAwsAccountStmt:                    q.allAwsAccountStmt,
 		confirmInvitationStmt:                q.confirmInvitationStmt,
 		countProjectCollaboratorByUserIdStmt: q.countProjectCollaboratorByUserIdStmt,
+		createSecurityGroupStmt:              q.createSecurityGroupStmt,
 		getActionsStmt:                       q.getActionsStmt,
 		getAwsAccountStmt:                    q.getAwsAccountStmt,
 		getInvitationByTokenStmt:             q.getInvitationByTokenStmt,

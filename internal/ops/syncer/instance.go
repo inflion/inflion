@@ -12,17 +12,28 @@ package syncer
 
 import (
 	"context"
-	"log"
+	"github.com/inflion/inflion/internal/logger"
 
 	"github.com/inflion/inflion/internal/paws"
 	"github.com/inflion/inflion/internal/store"
 )
+
+var log logger.Logger
+
+func init() {
+	var err error
+	log, err = logger.NewZapLogger(&logger.Configuration{Level: logger.DebugLevel})
+	if err != nil {
+		panic(err)
+	}
+}
 
 type InstanceSyncer struct {
 	updater  ServiceUpdater
 	fetcher  InstanceFetcher
 	linker   InstanceLinker
 	resolver InstanceIdResolver
+	querier  Querier
 }
 
 type InstanceFetcher interface {
@@ -41,10 +52,14 @@ type InstanceLinker interface {
 	LinkInstanceWithService(context.Context, store.LinkInstanceWithServiceParams) (store.InstanceAtService, error)
 }
 
+type Querier interface {
+	CreateSecurityGroup(ctx context.Context, arg store.CreateSecurityGroupParams) error
+}
+
 func (i *InstanceSyncer) run(ctx context.Context, params SyncParams) (err error) {
 	instances, err := i.fetcher.GetInstances(paws.NewEmptyFilterCondition())
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 
 	for _, instance := range instances {
@@ -55,15 +70,25 @@ func (i *InstanceSyncer) run(ctx context.Context, params SyncParams) (err error)
 			}
 
 			result, err := i.updater.UpsertService(ctx, input)
-			log.Println(result)
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 				return err
+			}
+
+			for _, sg := range instance.SecurityGroups {
+				err = i.querier.CreateSecurityGroup(ctx, store.CreateSecurityGroupParams{
+					SecurityGroupID:   sg.Id,
+					SecurityGroupName: sg.Name,
+				})
+			}
+
+			if err != nil {
+				log.Error(err)
 			}
 
 			id, err := i.resolver.ResolveIdByInstanceId(ctx, instance.InstanceID)
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 				return err
 			}
 
@@ -72,8 +97,9 @@ func (i *InstanceSyncer) run(ctx context.Context, params SyncParams) (err error)
 				InstanceID: id,
 			})
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 			}
+
 		}
 	}
 

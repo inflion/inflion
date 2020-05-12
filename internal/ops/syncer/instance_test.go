@@ -51,8 +51,8 @@ func (m MockInstanceFetcher) GetInstances(c paws.FilterCondition) ([]*paws.AwsIn
 					},
 				},
 			},
-			SecurityGroupIds: nil,
-			Status:           "",
+			SecurityGroups: nil,
+			Status:         "",
 		},
 	}, nil
 }

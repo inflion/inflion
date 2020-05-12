@@ -12,7 +12,6 @@ package syncer
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
@@ -44,7 +43,7 @@ func NewSyncer(querier store.Querier) Syncer {
 func (s *Syncer) Run() {
 	ctx := context.Background()
 
-	log.Println("Syncer started")
+	log.Info("Syncer started")
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -57,7 +56,7 @@ func (s *Syncer) Run() {
 
 			awsAccounts, err := s.querier.AllAwsAccount(ctx)
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 				continue
 			}
 
@@ -73,18 +72,18 @@ func (s *Syncer) Run() {
 
 				api, err := paws.New(params.awsAccount, "ap-northeast-1")
 				if err != nil {
-					log.Println(err)
+					log.Error(err)
 					continue
 				}
 
 				dataRetrievers := []DataRetriever{
-					&InstanceSyncer{updater: s.querier, fetcher: &api, linker: s.querier, resolver: s.querier},
+					&InstanceSyncer{updater: s.querier, fetcher: &api, linker: s.querier, resolver: s.querier, querier: s.querier},
 				}
 
 				for _, r := range dataRetrievers {
 					err := r.run(ctx, params)
 					if err != nil {
-						log.Println(err)
+						log.Error(err)
 					}
 				}
 			}
@@ -92,5 +91,5 @@ func (s *Syncer) Run() {
 	}()
 
 	wg.Wait()
-	log.Println("Syncer finished")
+	log.Info("Syncer finished")
 }

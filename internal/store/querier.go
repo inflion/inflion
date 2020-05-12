@@ -11,6 +11,7 @@ type Querier interface {
 	AllAwsAccount(ctx context.Context) ([]AllAwsAccountRow, error)
 	ConfirmInvitation(ctx context.Context, token string) (ProjectInvitation, error)
 	CountProjectCollaboratorByUserId(ctx context.Context, arg CountProjectCollaboratorByUserIdParams) (int64, error)
+	CreateSecurityGroup(ctx context.Context, arg CreateSecurityGroupParams) error
 	GetActions(ctx context.Context, projectID int64) ([]Action, error)
 	GetAwsAccount(ctx context.Context, projectID int64) (GetAwsAccountRow, error)
 	GetInvitationByToken(ctx context.Context, token string) (ProjectInvitation, error)

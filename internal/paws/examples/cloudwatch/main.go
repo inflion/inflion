@@ -13,12 +13,11 @@ package main
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/inflion/inflion/internal/instance/infra/providers/aws/metrics"
-	"time"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 func main() {
@@ -26,34 +25,29 @@ func main() {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	arn := "arn:aws:iam::AWS_ID:role/assumerole"
-	externalId := ""
-	region := "ap-northeast-1"
-
-	conf := createConfig(arn, externalId, region, sess)
-	svc := cloudwatch.New(sess, &conf)
-
-	metricNames := []string{
-		"CPUUtilization",
-		"StatusCheckFailed",
+	svc := ec2.New(sess)
+	input := &ec2.DescribeSecurityGroupsInput{
+		GroupIds: []*string{
+			aws.String("sg-0522b222a60fe45a6"),
+		},
 	}
 
-	ns := "AWS/EC2"
-
-	m := metrics.Metrics{CloudWatch: svc, Namespace: ns}
-	md := metrics.NewMetricsData(svc, ns, metrics.TimeWindow{
-		StartTime: 60 * 10 * 10 * 10,
-		EndTime:   0,
-		Period:    60,
-	})
-
-	metricList := m.ListMetrics(metricNames)
-
-	results := md.ParallelGetMetricData(metricList)
-
-	for _, result := range results {
-		fmt.Printf("%s: %s at %s\n", result.Name, result.Value, time.Unix(result.Time, 0))
+	result, err := svc.DescribeSecurityGroups(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				fmt.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+		return
 	}
+
+	fmt.Println(result)
 }
 
 func createConfig(arn string, externalID string, region string, sess *session.Session) (conf aws.Config) {
