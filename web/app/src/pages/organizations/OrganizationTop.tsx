@@ -36,8 +36,14 @@ export const OrganizationTop: React.FC = () => {
 
   return (
     <>
-      <Paper className={classes.root}>
-        <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
+      {/* <Paper className={classes.root}>
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          indicatorColor="primary"
+          textColor="primary"
+          centered
+        >
           <Tab label="Projects" />
         </Tabs>
       </Paper>
@@ -52,7 +58,7 @@ export const OrganizationTop: React.FC = () => {
 
       <TabPanel value={value} index={2}>
         People
-      </TabPanel>
+      </TabPanel> */}
     </>
   );
 };

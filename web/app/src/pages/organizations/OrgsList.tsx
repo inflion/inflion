@@ -37,7 +37,7 @@ function createData(name: string): Data {
   return { name };
 }
 
-export const OrgsList: React.FC<OrgListProps> = props => {
+export const OrgsList: React.FC<OrgListProps> = (props) => {
   const classes = useStyles();
 
   const [rows, setRows] = useState<Data[]>([]);
@@ -85,14 +85,19 @@ export const OrgsList: React.FC<OrgListProps> = props => {
           </TableHead>
 
           <TableBody>
-            {rows.map(row => (
+            {rows.map((row) => (
               <TableRow key={row.name}>
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell align="right">{row.name}</TableCell>
                 <TableCell align="right">
-                  <Button variant="contained" color="secondary" component={OrgLink} to={`/${row.name}`}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    component={OrgLink}
+                    to={`/${row.name}`}
+                  >
                     Show
                   </Button>
                 </TableCell>

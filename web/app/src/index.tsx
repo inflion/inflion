@@ -4,7 +4,8 @@ import { StylesProvider } from '@material-ui/styles';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
-import { App } from './App';
+import App from './App';
+
 import authConfig from './config/auth.json';
 import { Auth0Provider } from './utils/react-auth0-spa';
 import * as serviceWorker from './utils/serviceWorker';

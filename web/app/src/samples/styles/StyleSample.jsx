@@ -2,7 +2,7 @@ import { makeStyles, Paper } from '@material-ui/core';
 import React from 'react';
 
 // スタイルの記述をする
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   outer: {
     width: '100%',
     height: '100%',
@@ -23,7 +23,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const StyleSample = props => {
+export const StyleSample = (props) => {
   // useStyles() を呼ぶと上記スタイリングが適応されるユニークなクラスネームが取得できる
   const classes = useStyles();
 

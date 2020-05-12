@@ -1,33 +1,105 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
-import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
-
-import { makeStyles, Theme } from '@material-ui/core/styles';
-
-import Container from '@material-ui/core/Container';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import Button from '@material-ui/core/Button';
-
-import { About } from './pages/About';
-import { Organizations } from './pages/organizations/Organizations';
-import { InstanceDetail } from './pages/projects/instance/InstanceDetail';
-import { OrganizationTop } from './pages/organizations/OrganizationTop';
-import { ProjectPage } from './pages/projects/ProjectPage';
-import { useAuth0 } from './utils/react-auth0-spa';
-
-import NavBar from './components/NavBar';
 import CircularProgress from '@material-ui/core/CircularProgress';
-
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { makeStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
 import i18n from 'i18next';
-import { useTranslation, initReactI18next } from 'react-i18next';
-
-import { resources } from './i18n/resources';
-import { UserRegistration } from './pages/UserRegistration';
-import { NewProjectPage } from './pages/projects/NewProjectPage';
-import { ProjectInvitationConfirm } from './pages/projects/invitation/Confirmation';
-
+import React, { useEffect } from 'react';
+import { initReactI18next, useTranslation } from 'react-i18next';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import NavBar from './components/NavBar';
 import { useConfirmProjectInvitationMutation } from './graphql';
+import { resources } from './i18n/resources';
+import { About } from './pages/About';
 import { Dashboard } from './pages/dashboard/Dashboard';
+import { Organizations } from './pages/organizations/Organizations';
+import { OrganizationTop } from './pages/organizations/OrganizationTop';
+import { ProjectInvitationConfirm } from './pages/projects/invitation/Confirmation';
+import { NewProjectPage } from './pages/projects/NewProjectPage';
+import { ProjectPage } from './pages/projects/ProjectPage';
+import { Projects } from './pages/projects/Projects';
+import { UserRegistration } from './pages/UserRegistration';
+import { useAuth0 } from './utils/react-auth0-spa';
+const drawerWidth = 240;
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+  },
+  toolbar: {
+    paddingRight: 24, // keep right padding when drawer closed
+  },
+  toolbarIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: '0 8px',
+    ...theme.mixins.toolbar,
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  appBarShift: {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  menuButton: {
+    marginRight: 36,
+  },
+  menuButtonHidden: {
+    display: 'none',
+  },
+  title: {
+    flexGrow: 1,
+  },
+  drawerPaper: {
+    position: 'relative',
+    whiteSpace: 'nowrap',
+    width: drawerWidth,
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  drawerPaperClose: {
+    overflowX: 'hidden',
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+    width: theme.spacing(7),
+    [theme.breakpoints.up('sm')]: {
+      width: theme.spacing(9),
+    },
+  },
+  appBarSpacer: theme.mixins.toolbar,
+  content: {
+    flexGrow: 1,
+    height: '100vh',
+    overflow: 'auto',
+  },
+  container: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
+  },
+  paper: {
+    padding: theme.spacing(2),
+    display: 'flex',
+    overflow: 'auto',
+    flexDirection: 'column',
+  },
+  fixedHeight: {
+    height: 240,
+  },
+}));
 
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
@@ -41,29 +113,9 @@ i18n
   })
   .catch((reason) => console.log(reason));
 
-const Root = styled.div`
-  display: flex;
-  -webkit-font-smoothing: 'antialiased';
-  -moz-osx-font-smoothing: 'grayscale';
-`;
-
-const Content = styled.main`
-  flex-grow: 1;
-  padding: ${(props) => props.theme.spacing(3, 2)};
-`;
-
-const useStyles = makeStyles((theme: Theme) => ({
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-  },
-}));
-
-export const App = () => {
+export default function App() {
   const classes = useStyles();
+
   const { t } = useTranslation();
   const { loading, loginWithRedirect, isAuthenticated, getTokenSilently, user } = useAuth0();
   const [confirmProjectInvitation] = useConfirmProjectInvitationMutation();
@@ -92,49 +144,49 @@ export const App = () => {
     confirmProjectInvitation({ variables: { input: { token: token } } });
     sessionStorage.removeItem('confirmation');
   }
-
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   return (
     <>
-      <CssBaseline />
-
-      <Root>
+      <div className={classes.root}>
+        <CssBaseline />
         <Router>
           <NavBar />
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
 
-          <Content>
             <div className={classes.toolbar} />
 
             {loading && <CircularProgress />}
 
             {!loading && isAuthenticated ? (
-              <Container maxWidth="lg">
-                <Switch>
-                  <Route path="/about">
-                    <About />
-                  </Route>
-                  <Route path="/new">
-                    <NewProjectPage />
-                  </Route>
-                  <Route path="/orgs">
-                    <Organizations />
-                  </Route>
-                  <Route path="/instance/:instanceId">
-                    <InstanceDetail />
-                  </Route>
-                  <Route path="/projects/:projectName">
-                    <ProjectPage />
-                  </Route>
-                  <Route path="/user_registration">
-                    <UserRegistration />
-                  </Route>
-                  <Route path="/:orgId">
-                    <OrganizationTop />
-                  </Route>
-                  <Route path="/">
-                    <Dashboard />
-                  </Route>
-                </Switch>
-              </Container>
+              <Switch>
+                <Route path="/about">
+                  <About />
+                </Route>
+                <Route path="/new">
+                  <NewProjectPage />
+                </Route>
+                <Route path="/orgs">
+                  <Organizations />
+                </Route>
+                <Route path="/instance/:instanceId"></Route>
+                <Route path="/projects/:projectName">
+                  <ProjectPage />
+                </Route>
+                <Route path="/projects">
+                  <Projects />
+                </Route>
+                >
+                <Route path="/user_registration">
+                  <UserRegistration />
+                </Route>
+                <Route path="/:orgId">
+                  <OrganizationTop />
+                </Route>
+                <Route path="/">
+                  <Dashboard />
+                </Route>
+              </Switch>
             ) : (
               <>
                 <Switch>
@@ -152,9 +204,9 @@ export const App = () => {
                 </Button>
               </>
             )}
-          </Content>
+          </main>
         </Router>
-      </Root>
+      </div>
     </>
   );
-};
+}

@@ -40,9 +40,11 @@ type FormData = {
 
 type User = { sub: string; email: string; nickname: string };
 const judgeUserType = (user: any): user is User =>
-  typeof user.sub === 'string' && typeof user.email === 'string' && typeof user.nickname === 'string';
+  typeof user.sub === 'string' &&
+  typeof user.email === 'string' &&
+  typeof user.nickname === 'string';
 
-export const UserRegistration: React.FC<UserRegistrationFormProps> = props => {
+export const UserRegistration: React.FC<UserRegistrationFormProps> = (props) => {
   const classes = useStyles();
 
   const [sub, setSub] = useState<string>('');
@@ -55,7 +57,7 @@ export const UserRegistration: React.FC<UserRegistrationFormProps> = props => {
   const onSubmit = handleSubmit(({ username, email }) => {
     createUser({
       variables: { input: { username, email, sub } },
-    }).catch(reason => console.log(reason));
+    }).catch((reason) => console.log(reason));
 
     if (props.created !== undefined) {
       props.created({ username, email });

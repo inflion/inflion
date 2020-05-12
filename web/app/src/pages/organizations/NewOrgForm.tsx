@@ -34,7 +34,7 @@ type FormData = {
   displayName: string;
 };
 
-export const NewOrgForm: React.FC<NewOrgFormProps> = props => {
+export const NewOrgForm: React.FC<NewOrgFormProps> = (props) => {
   const classes = useStyles();
 
   const { register, handleSubmit, setValue, errors } = useForm<FormData>();

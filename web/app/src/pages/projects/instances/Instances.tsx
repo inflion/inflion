@@ -221,7 +221,9 @@ export const Instances = () => {
                         />
                       </TableCell>
                       <TableCell component="th" id={labelId} scope="row" padding="none">
-                        <RouterLink to={`/instance/${row.instanceId}`}>{row.instanceId}</RouterLink>
+                        <RouterLink to={`/instance/${project?.id}/${row.instanceId}`}>
+                          {row.instanceId}
+                        </RouterLink>
                       </TableCell>
                       <TableCell align="right">{row.name}</TableCell>
                       <TableCell align="right">{row.service}</TableCell>

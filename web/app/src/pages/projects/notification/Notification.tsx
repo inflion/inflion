@@ -98,7 +98,7 @@ export const Notification = () => {
   };
 
   const onSubmit = handleSubmit(({ rule_name }) => {
-    let input = {
+    const input = {
       id: undefined,
       project_id: project?.id,
       rule_name: rule_name,

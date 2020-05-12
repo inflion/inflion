@@ -88,7 +88,7 @@ export const AwsAccount = () => {
   };
 
   const onSubmit = handleSubmit(({ awsAccountId, awsRoleName, awsExternalId }) => {
-    let input = {
+    const input = {
       id: selectedAwsAccount.id,
       account_id: awsAccountId,
       role_name: awsRoleName,
