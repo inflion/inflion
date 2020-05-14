@@ -1,11 +1,18 @@
 up:
+	docker-compose up -d db
+	sleep 3
+	./migrate.sh
+	docker-compose up -d hasura hasurats
+	sleep 35
+	cd ../../api/hasura/main && hasura metadata apply --admin-secret inflion
 	docker-compose up -d
 
 restart:
 	docker-compose restart
 
 destroy: stop
-	docker-compose rm
+	docker-compose rm -f
+	docker volume prune -f
 
 build:
 	docker-compose build
