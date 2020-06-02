@@ -197,19 +197,14 @@ services:
       - "${TIMESCALE_DB_EXTERNAL_PORT}:${TIMESCALE_DB_INTERNAL_PORT}"
 
   hasura:
-    image: hasura/graphql-engine:v1.2.0.cli-migrations-v2
+    image: hasura/graphql-engine:v1.2.0
     ports:
       - 8080:8080
-    volumes:
-      - ../../api/hasura/main/migrations:/hasura-migrations
-      - ../../api/hasura/main/metadata:/hasura-metadata
     depends_on:
       - db
       - api
     restart: always
     environment:
-      HASURA_GRAPHQL_MIGRATIONS_DIR: /hasura-migrations
-      HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
       HASURA_GRAPHQL_DEV_MODE: 'true'
       HASURA_GRAPHQL_DATABASE_URL: 'postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_DATABASE}'
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
@@ -218,14 +213,19 @@ services:
       HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
 
   hasurats:
-    image: hasura/graphql-engine:v1.2.0
+    image: hasura/graphql-engine:v1.2.0.cli-migrations-v2
     ports:
       - 8081:8080
+    volumes:
+      - ../../api/hasura/timescale/migrations:/hasura-migrations
+      - ../../api/hasura/timescale/metadata:/hasura-metadata
     depends_on:
       - timescale
       - api
     restart: always
     environment:
+      HASURA_GRAPHQL_MIGRATIONS_DIR: /hasura-migrations
+      HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
       HASURA_GRAPHQL_DEV_MODE: 'true'
       HASURA_GRAPHQL_DATABASE_URL: 'postgres://${TIMESCALE_DB_USERNAME}:${TIMESCALE_DB_PASSWORD}@${TIMESCALE_DB_HOST}:${TIMESCALE_DB_INTERNAL_PORT}/${TIMESCALE_DB_DATABASE}'
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'

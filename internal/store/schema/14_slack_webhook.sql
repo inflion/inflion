@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS slack_webhook
 (
     id          BIGSERIAL PRIMARY KEY,
@@ -10,3 +11,5 @@ CREATE TABLE IF NOT EXISTS slack_webhook
     updated_at  timestamp without time zone NOT NULL DEFAULT now(),
     CONSTRAINT slack_webhook_project_id_channel_key UNIQUE (project_id, channel)
 );
+-- +migrate Down
+DROP TABLE IF EXISTS slack_webhook;

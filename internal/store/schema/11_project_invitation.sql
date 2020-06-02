@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE IF NOT EXISTS project_invitation
 (
     id              BIGSERIAL PRIMARY KEY,
@@ -9,3 +10,5 @@ CREATE TABLE IF NOT EXISTS project_invitation
     created_at      TIMESTAMP                                 NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP                                 NOT NULL DEFAULT NOW()
 );
+-- +migrate Down
+DROP TABLE IF EXISTS project_invitation;
