@@ -19,6 +19,7 @@ import (
 )
 
 type InstanceID *string
+type InstanceIds []*string
 
 type AwsInstance struct {
 	InstanceID       string
@@ -127,17 +128,61 @@ func (a *Api) CreateInstance(parameter CreateInstanceParameter) (InstanceID, err
 	return runResult.Instances[0].InstanceId, nil
 }
 
-func (a *Api) TerminateInstance(instanceId InstanceID) (InstanceID, error) {
-	result, err := a.conn.TerminateInstances(&ec2.TerminateInstancesInput{
-		DryRun:      aws.Bool(false),
-		InstanceIds: []*string{instanceId},
+func (a *Api) StartInstances(instanceIds InstanceIds) (InstanceIds, error) {
+	result, err := a.conn.StartInstances(&ec2.StartInstancesInput{
+		AdditionalInfo: nil,
+		DryRun:         aws.Bool(false),
+		InstanceIds:    instanceIds,
 	})
 	if err != nil {
-		log.Println("could not terminate instance", err)
+		log.Println("could not start instances", err)
 		return nil, err
 	}
 
-	return result.TerminatingInstances[0].InstanceId, nil
+	var startingInstanceIds InstanceIds
+	for _, startingInstance := range result.StartingInstances {
+		startingInstanceIds = append(startingInstanceIds, startingInstance.InstanceId)
+	}
+
+	return startingInstanceIds, nil
+}
+
+func (a *Api) StopInstances(instanceIds InstanceIds) (InstanceIds, error) {
+	result, err := a.conn.StopInstances(&ec2.StopInstancesInput{
+		DryRun:      aws.Bool(false),
+		Force:       nil,
+		Hibernate:   nil,
+		InstanceIds: instanceIds,
+	})
+	if err != nil {
+		log.Println("could not stop instances", err)
+		return nil, err
+	}
+
+	var stoppingInstanceIds InstanceIds
+	for _, stoppingInstance := range result.StoppingInstances {
+		stoppingInstanceIds = append(stoppingInstanceIds, stoppingInstance.InstanceId)
+	}
+
+	return stoppingInstanceIds, nil
+}
+
+func (a *Api) TerminateInstances(instanceIds InstanceIds) (InstanceIds, error) {
+	result, err := a.conn.TerminateInstances(&ec2.TerminateInstancesInput{
+		DryRun:      aws.Bool(false),
+		InstanceIds: instanceIds,
+	})
+	if err != nil {
+		log.Println("could not terminate instances", err)
+		return nil, err
+	}
+
+	var terminatingInstanceIds InstanceIds
+	for _, terminatingInstance := range result.TerminatingInstances {
+		terminatingInstanceIds = append(terminatingInstanceIds, terminatingInstance.InstanceId)
+	}
+
+	return terminatingInstanceIds, nil
 }
 
 func (a *Api) convertAwsInstances(reservations []*ec2.Reservation) []*AwsInstance {
