@@ -1,5 +1,6 @@
 .idea
 .env
+.env.*
 .DS_Store
 .vs_code
 node_modueles
