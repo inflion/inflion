@@ -8,7 +8,7 @@ import (
 	"github.com/inflion/inflion/internal/ops/syncer"
 	"github.com/inflion/inflion/internal/store"
 	"github.com/inflion/inflion/internal/timescale"
-	"github.com/inflion/inflion/internal/ops/notification"
+	"github.com/inflion/inflion/internal/ops/broker"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/producer"
 )
@@ -27,7 +27,7 @@ func Initialize() (Ops, error) {
 		),
 		producer.NewProducer,
 		monitor.NewMonitor,
-		notification.NewBroker,
+		broker.NewBroker,
 		syncer.NewSyncer,
 		newOps,
 	)

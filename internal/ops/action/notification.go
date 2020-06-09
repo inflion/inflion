@@ -8,7 +8,7 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package notification
+package action
 
 import (
 	"context"
@@ -30,18 +30,18 @@ func init() {
 
 type params map[string]string
 
-type notifier interface {
+type Notifier interface {
 	notify(event monitor.MonitoringEvent, params params) []error
 }
 
 type notification struct {
 	querier   store.Querier
-	Notifiers []notifier
+	Notifiers []Notifier
 }
 
 func newNotification(querier store.Querier) notification {
 	return notification{
-		Notifiers: []notifier{&slackNotifier{querier: querier}},
+		Notifiers: []Notifier{&slackNotifier{querier: querier}},
 	}
 }
 
@@ -60,11 +60,11 @@ func (n *notification) notify(event monitor.MonitoringEvent, params params) []er
 
 type throttledNotification struct {
 	querier   store.Querier
-	notifiers []notifier
+	notifiers []Notifier
 	memento   map[string]time.Time
 }
 
-func newThrottledNotification(q store.Querier, n []notifier) notifier {
+func NewThrottledNotification(q store.Querier, n []Notifier) Notifier {
 	return &throttledNotification{
 		querier:   q,
 		notifiers: n,
@@ -179,7 +179,7 @@ func (c CpuUtilizationSlackAttachment) attachment(event monitor.MonitoringEvent)
 	id := event.Values["InstanceId"]
 
 	a := slack.Attachment{}
-	a.AddField(slack.Field{Title: "Warning", Value: id.(string)}).AddField(slack.Field{Title: "Status", Value: "Completed"})
+	a.AddField(slack.Field{Title: "Warning", Value: id.(string)}).AddField(slack.Field{Title: "ExitStatus", Value: "Completed"})
 	a.AddAction(slack.Action{Type: "button", Text: "I got it", Url: "http://localhost:3000/reboot", Style: "primary"})
 	return a
 }

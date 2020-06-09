@@ -133,7 +133,7 @@
     name: instance_at_service
 - table:
     schema: public
-    name: notification_rule
+    name: matcher_rule
   object_relationships:
   - name: project
     using:
