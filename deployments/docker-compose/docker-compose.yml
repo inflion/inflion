@@ -264,6 +264,23 @@ services:
       - 1025:1025
       - 8025:8025
 
+  etcd:
+    image: bitnami/etcd:3.4.9
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - 2379:2379
+      - 2380:2380
+
 volumes:
   db-data:
     driver: local
+
+networks:
+  etcd_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_CONFIG_SUBNET}

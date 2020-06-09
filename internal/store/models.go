@@ -29,6 +29,15 @@ type AwsAccount struct {
 	UpdatedAt  time.Time
 }
 
+type Flow struct {
+	ID        int64
+	ProjectID int64
+	FlowName  string
+	Body      json.RawMessage
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Instance struct {
 	ID         int64
 	Name       string
@@ -47,13 +56,14 @@ type InstanceAtService struct {
 	UpdatedAt  time.Time
 }
 
-type NotificationRule struct {
-	ID        int64
-	ProjectID int64
-	RuleName  string
-	Rules     json.RawMessage
-	CreatedAt time.Time
-	UpdatedAt time.Time
+type MatcherRule struct {
+	ID             int64
+	ProjectID      int64
+	RuleName       string
+	TargetFlowName string
+	Rules          json.RawMessage
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type Organization struct {

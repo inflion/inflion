@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package inflionserverpb;
+
+// for grpc-gateway
+import "google/api/annotations.proto";
+
+service Flow {
+  rpc Run (RunFlowRequest) returns (RunFlowResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/flow/run"
+      body: "*"
+    };
+  }
+
+  rpc Create (CreateFlowRequest) returns (CreateFlowResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/flows"
+      body: "*"
+    };
+  }
+
+  rpc Get (GetFlowRequest) returns (GetFlowResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/flow"
+      body: "*"
+    };
+  }
+
+  rpc Update (UpdateFlowRequest) returns (UpdateFlowResponse)
+  {
+    option (google.api.http) = {
+      put: "/v1/flow"
+      body: "*"
+    };
+  }
+
+  rpc Delete (DeleteFlowRequest) returns (DeleteFlowResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/flow"
+      body: "*"
+    };
+  }
+}
+
+message RunFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message RunFlowResponse {
+  enum ExitStatus {
+    SUCCESS = 0;
+    FAILURE = 1;
+  }
+  ExitStatus status = 1;
+  string output = 2;
+}
+
+message CreateFlowRequest {
+  string project = 1;
+  string body = 2;
+}
+
+message CreateFlowResponse {
+  string id = 1;
+}
+
+message GetFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message GetFlowResponse {
+  string id = 1;
+  string body = 2;
+}
+
+message UpdateFlowRequest {
+  string project = 1;
+  string id = 2;
+  string body = 3;
+}
+
+message UpdateFlowResponse {
+  string id = 1;
+}
+
+message DeleteFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message DeleteFlowResponse {
+  string id = 1;
+}
+
+service Rule {
+  rpc Create (CreateRuleRequest) returns (CreateRuleResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/rules"
+      body: "*"
+    };
+  }
+
+  rpc Get (GetRuleRequest) returns (GetRuleResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/rule"
+      body: "*"
+    };
+  }
+
+  rpc Update (UpdateRuleRequest) returns (UpdateRuleResponse)
+  {
+    option (google.api.http) = {
+      put: "/v1/rule"
+      body: "*"
+    };
+  }
+
+  rpc Delete (DeleteRuleRequest) returns (DeleteRuleResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/rule"
+      body: "*"
+    };
+  }
+}
+
+message CreateRuleRequest {
+  string body = 1;
+}
+
+message CreateRuleResponse {
+  string id = 1;
+}
+
+message GetRuleRequest {
+  string id = 1;
+}
+
+message GetRuleResponse {
+  string id = 1;
+  string body = 2;
+}
+
+message UpdateRuleRequest {
+  string id = 1;
+  string body = 2;
+}
+
+message UpdateRuleResponse {
+  string id = 1;
+}
+
+message DeleteRuleRequest {
+  string id = 1;
+}
+
+message DeleteRuleResponse {
+  string id = 1;
+}

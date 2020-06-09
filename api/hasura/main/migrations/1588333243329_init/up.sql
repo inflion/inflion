@@ -73,7 +73,7 @@ CREATE SEQUENCE public.instance_project_id_seq
     NO MAXVALUE
     CACHE 1;
 ALTER SEQUENCE public.instance_project_id_seq OWNED BY public.instance.project_id;
-CREATE TABLE public.notification_rule (
+CREATE TABLE public.matcher_rule (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
     rule_name character varying(255) NOT NULL,
@@ -81,13 +81,13 @@ CREATE TABLE public.notification_rule (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     rules jsonb DEFAULT jsonb_build_array() NOT NULL
 );
-CREATE SEQUENCE public.notification_rule_id_seq
+CREATE SEQUENCE public.matcher_rule_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER SEQUENCE public.notification_rule_id_seq OWNED BY public.notification_rule.id;
+ALTER SEQUENCE public.matcher_rule_id_seq OWNED BY public.matcher_rule.id;
 CREATE TABLE public.organization (
     id bigint NOT NULL,
     name character varying(255) NOT NULL,
@@ -187,7 +187,7 @@ ALTER TABLE ONLY public.aws_account ALTER COLUMN id SET DEFAULT nextval('public.
 ALTER TABLE ONLY public.instance ALTER COLUMN id SET DEFAULT nextval('public.instance_id_seq'::regclass);
 ALTER TABLE ONLY public.instance ALTER COLUMN project_id SET DEFAULT nextval('public.instance_project_id_seq'::regclass);
 ALTER TABLE ONLY public.instance_at_service ALTER COLUMN id SET DEFAULT nextval('public.instance_at_service_id_seq'::regclass);
-ALTER TABLE ONLY public.notification_rule ALTER COLUMN id SET DEFAULT nextval('public.notification_rule_id_seq'::regclass);
+ALTER TABLE ONLY public.matcher_rule ALTER COLUMN id SET DEFAULT nextval('public.matcher_rule_id_seq'::regclass);
 ALTER TABLE ONLY public.organization ALTER COLUMN id SET DEFAULT nextval('public.organization_id_seq'::regclass);
 ALTER TABLE ONLY public.project ALTER COLUMN id SET DEFAULT nextval('public.project_id_seq'::regclass);
 ALTER TABLE ONLY public.project_invitation ALTER COLUMN id SET DEFAULT nextval('public.project_invitation_id_seq'::regclass);
@@ -205,8 +205,8 @@ ALTER TABLE ONLY public.instance
     ADD CONSTRAINT instance_instance_id_key UNIQUE (instance_id);
 ALTER TABLE ONLY public.instance
     ADD CONSTRAINT instance_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.notification_rule
-    ADD CONSTRAINT notification_rule_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.matcher_rule
+    ADD CONSTRAINT matcher_rule_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.organization
     ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.project_in_organization
@@ -245,8 +245,8 @@ ALTER TABLE ONLY public.instance_at_service
     ADD CONSTRAINT instance_at_service_service_id_fkey FOREIGN KEY (service_id) REFERENCES public.service(id);
 ALTER TABLE ONLY public.instance
     ADD CONSTRAINT instance_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.project(id);
-ALTER TABLE ONLY public.notification_rule
-    ADD CONSTRAINT notification_rule_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.project(id);
+ALTER TABLE ONLY public.matcher_rule
+    ADD CONSTRAINT matcher_rule_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.project(id);
 ALTER TABLE ONLY public.project_collaborator
     ADD CONSTRAINT project_collaborator_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.project(id);
 ALTER TABLE ONLY public.project_collaborator

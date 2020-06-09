@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "format": {
+      "version": 1
+    }
+  },
+  "body": {
+    "conditions": [
+      {
+        "id": "cond_id_1",
+        "expressions": [
+          {
+            "input": "last.status",
+            "operation": "equals",
+            "value": "success"
+          }
+        ],
+        "if_true": {
+          "next_id": "notification"
+        },
+        "if_false": {
+          "next_id": "logging"
+        }
+      }
+    ],
+    "stages": [
+      {
+        "id": "params",
+        "next": "instance-action",
+        "name": "Params",
+        "actions": [
+          {
+            "type": "params",
+            "params": {
+              "target": "i-test"
+            }
+          }
+        ]
+      },
+      {
+        "id": "instance-action",
+        "next": "cond_id_1",
+        "name": "Action",
+        "actions": [
+          {
+            "type": "instance",
+            "params": {
+              "action": "restart",
+              "target": "params.target"
+            }
+          }
+        ]
+      },
+      {
+        "id": "notification",
+        "name": "Notification",
+        "next": "notification2",
+        "actions": [
+          {
+            "type": "notification",
+            "params": {
+              "type": "slack",
+              "webhook_url": "https://hooks.slack.com/services/???????/??????/??????",
+              "channel": "notify_test",
+              "message": "hello!"
+            }
+          }
+        ]
+      },
+      {
+        "id": "notification2",
+        "name": "Notification2",
+        "next": "logging",
+        "actions": [
+          {
+            "type": "notification",
+            "params": {
+              "type": "slack",
+              "webhook_url": "https://hooks.slack.com/services/???????/??????/??????",
+              "channel": "notify_test",
+              "message": "hello2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "logging",
+        "name": "Logging",
+        "next": "__end__",
+        "actions": [
+          {
+            "type": "logging",
+            "params": {
+              "message": "done"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
