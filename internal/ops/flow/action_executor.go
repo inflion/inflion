@@ -12,7 +12,10 @@ package flow
 
 import (
 	"github.com/inflion/inflion/internal/ops/flow/action"
+	"github.com/inflion/inflion/internal/ops/flow/configstore"
+	"github.com/inflion/inflion/internal/paws"
 	"log"
+	"strings"
 )
 
 type ActionResult struct {
@@ -46,16 +49,129 @@ func (m MatcherActionExecutor) Run(_ ExecutionContext, action Action) (ActionRes
 	}, nil
 }
 
-type InstanceActionExecutor struct {
+type ConfigActionExecutor struct {
 }
 
-func (i InstanceActionExecutor) Run(_ ExecutionContext, action Action) (ActionResult, error) {
+func (i ConfigActionExecutor) Run(c ExecutionContext, action Action) (ActionResult, error) {
 	log.Println("execute action: " + action.Type)
 	log.Printf("action params: %+v", action.Params)
+
+	cs := configstore.EtcdConfigStore{} // TODO move somewhere
+
+	project := c.GetValueByPath(NewPath("system.project")).(string)
+
+	configs, err := cs.List(configstore.ConfigListRequest{
+		Project: project,
+		Key:     action.Params["key-prefix"],
+	})
+	if err != nil {
+		return ActionResult{}, nil
+	}
+
+	outputs := map[string]string{}
+	for _, c := range configs.Configs {
+		log.Printf("%s = %s", c.Key, c.Value)
+		key := strings.Replace(c.Key, "/"+project+"/config/aws/", "", -1)
+		outputs[key] = c.Value
+	}
+
+	return ActionResult{
+		Action:     action,
+		Outputs:    outputs,
+		ExitStatus: true,
+	}, nil
+}
+
+type InstanceDataActionExecutor struct {
+}
+
+func (i InstanceDataActionExecutor) Run(ec ExecutionContext, action Action) (ActionResult, error) {
+	log.Println("execute action: " + action.Type)
+	log.Printf("action params: %+v", action.Params)
+
+	a := paws.AwsAccount{
+		AccountId:  ec.GetValueByPath(NewPath("config.account_id")).(string),
+		RoleName:   ec.GetValueByPath(NewPath("config.assume_role")).(string),
+		ExternalId: ec.GetValueByPath(NewPath("config.external_id")).(string),
+	}
+	p, err := paws.New(a, "ap-northeast-1")
+	if err != nil {
+		return ActionResult{}, err
+	}
+
+	fc := paws.FilterCondition{
+		All:      false,
+		TagName:  action.Params["tag"],
+		TagValue: action.Params["tag-value"],
+	}
+
+	instances, err := p.GetInstances(fc)
+	if err != nil {
+		return ActionResult{}, err
+	}
+
+	var instanceIds []string
+
+	for _, instance := range instances {
+		instanceIds = append(instanceIds, instance.InstanceID)
+	}
+
 	return ActionResult{
 		Action: action,
 		Outputs: map[string]string{
-			"result": "true",
+			"instance_ids": strings.Join(instanceIds, ","),
+		},
+		ExitStatus: true,
+	}, nil
+}
+
+type InstanceActionExecutor struct {
+}
+
+func (i InstanceActionExecutor) Run(ec ExecutionContext, action Action) (ActionResult, error) {
+	log.Println("execute action: " + action.Type)
+	log.Printf("action params: %+v", action.Params)
+
+	actionType := action.Params["action"]
+
+	a := paws.AwsAccount{
+		AccountId:  ec.GetValueByPath(NewPath("config.account_id")).(string),
+		RoleName:   ec.GetValueByPath(NewPath("config.assume_role")).(string),
+		ExternalId: ec.GetValueByPath(NewPath("config.external_id")).(string),
+	}
+	p, err := paws.New(a, "ap-northeast-1")
+	if err != nil {
+		return ActionResult{}, err
+	}
+
+	instanceIds := paws.InstanceIds{}
+
+	t := ec.GetValueByPath(NewPath(action.Params["targets"])).(string)
+
+	for _, id := range strings.Split(t, ",") {
+		instanceIds = append(instanceIds, &id)
+	}
+
+	var affectedInstances paws.InstanceIds
+
+	if actionType == "stop" {
+		affectedInstances, err = p.StopInstances(instanceIds)
+	} else if actionType == "start" {
+		affectedInstances, err = p.StartInstances(instanceIds)
+	}
+
+	if err != nil {
+		return ActionResult{}, err
+	}
+	var affected []string
+	for _, a := range affectedInstances {
+		affected = append(affected, *a)
+	}
+
+	return ActionResult{
+		Action: action,
+		Outputs: map[string]string{
+			"affected": strings.Join(affected, ","),
 		},
 		ExitStatus: true,
 	}, nil
@@ -109,8 +225,8 @@ func (p ParamsActionExecutor) Run(e ExecutionContext, a Action) (ActionResult, e
 	}
 
 	return ActionResult{
-		Action: a,
-		Outputs: outputs,
+		Action:     a,
+		Outputs:    outputs,
 		ExitStatus: true,
 	}, nil
 }

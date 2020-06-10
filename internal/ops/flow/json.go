@@ -8,41 +8,48 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package json
+package flow
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/inflion/inflion/internal/ops/flow"
 )
 
-func Unmarshal(rawJson []byte) (flow.Recipe, error) {
+type MetadataJson struct {
+	Metadata struct {
+		Format struct {
+			Version int `json:"version"`
+		} `json:"Format"`
+	} `json:"Metadata"`
+}
+
+func Unmarshal(rawJson []byte) (Recipe, error) {
 	m := MetadataJson{}
 	err := json.Unmarshal(rawJson, &m)
 	if err != nil {
-		return flow.Recipe{}, err
+		return Recipe{}, err
 	}
 
 	if m.Metadata.Format.Version == 1 {
 		v1, err := UnmarshalV1(rawJson)
 		if err != nil {
-			return flow.Recipe{}, err
+			return Recipe{}, err
 		}
-		c := flow.Conditions{}
+		c := Conditions{}
 		for _, cj := range v1.Body.Conditions {
 			c.Conditions = append(c.Conditions, cj.mustConvert())
 		}
 
-		s := flow.Stages{}
+		s := Stages{}
 		for _, sj := range v1.Body.Stages {
 			s.Stages = append(s.Stages, sj.mustConvert())
 		}
 
-		return flow.Recipe{
+		return Recipe{
 			Conditions: c,
 			Stages:     s,
 		}, nil
 	}
 
-	return flow.Recipe{}, fmt.Errorf("json version %d not supported", m.Metadata.Format.Version)
+	return Recipe{}, fmt.Errorf("json version %d not supported", m.Metadata.Format.Version)
 }

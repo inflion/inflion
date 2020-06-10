@@ -76,13 +76,20 @@ func (e DefaultExecutor) exec(node Node, context ExecutionContext) ExecutionCont
 		}
 	}
 
+	if nextNode != nil {
+		log.Printf("next node: %s", nextNode.getId())
+	} else {
+		log.Printf("next node is nil")
+	}
+
 	return e.exec(nextNode, context)
 }
 
 func (e DefaultExecutor) execStage(stage Stage, context ExecutionContext) ExecutionContext {
 	actionResults := actionResults{}
 
-	log.Printf("actions: %+v", stage.Actions.Actions)
+	log.Printf("Run stage %s", stage.Id)
+	log.Printf("Actions: %+v", stage.Actions.Actions)
 
 	for _, a := range stage.Actions.Actions {
 		ae, err := e.loader.Load(a)
@@ -104,7 +111,7 @@ func (e DefaultExecutor) execStage(stage Stage, context ExecutionContext) Execut
 	context = e.addContextValuesFromActionResults(stage, actionResults, context)
 	log.Printf("context: %+v", context.ExecutionFields)
 
-	return context.addFields("last", ExecutionFields{
+	return context.AddFields("last", ExecutionFields{
 		Values: map[string]interface{}{
 			"status": actionResults.getExitMessage(),
 		},
@@ -120,7 +127,7 @@ func (e DefaultExecutor) addContextValuesFromActionResults(stage Stage, results 
 		fields := ExecutionFields{
 			Values: values,
 		}
-		context = context.addFields(stage.Name, fields)
+		context = context.AddFields(stage.Name, fields)
 	}
 	return context
 }

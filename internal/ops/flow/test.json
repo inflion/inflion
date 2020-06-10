@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "format": {
+      "version": 1
+    }
+  },
+  "body": {
+    "conditions": [
+      {
+        "id": "cond_id_1",
+        "expressions": [
+          {
+            "input": "last.status",
+            "operation": "equals",
+            "value": "success"
+          }
+        ],
+        "if_true": {
+          "next_id": "notification"
+        },
+        "if_false": {
+          "next_id": "logging"
+        }
+      }
+    ],
+    "stages": [
+      {
+        "id": "params",
+        "name": "Params",
+        "next": "config",
+        "actions": [
+          {
+            "type": "params",
+            "params": {
+              "target": "i-test"
+            }
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "name": "config",
+        "next": "fetch",
+        "actions": [
+          {
+            "type": "config",
+            "params": {
+              "key-prefix": "aws"
+            }
+          }
+        ]
+      },
+      {
+        "id": "fetch",
+        "name": "Fetch targets",
+        "next": "instance-action",
+        "actions": [
+          {
+            "type": "instance-data",
+            "params": {
+              "tag": "stop"
+            }
+          }
+        ]
+      },
+      {
+        "id": "instance-action",
+        "name": "Action",
+        "next": "cond_id_1",
+        "actions": [
+          {
+            "type": "instance",
+            "params": {
+              "action": "restarts",
+              "target": "params.targets"
+            }
+          }
+        ]
+      },
+      {
+        "id": "notification",
+        "name": "Notification",
+        "next": "__end__",
+        "actions": [
+          {
+            "type": "notification",
+            "params": {
+              "type": "slack",
+              "webhook_url": "https://hooks.slack.com/services/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",
+              "channel": "notify_test",
+              "message": "hello!"
+            }
+          }
+        ]
+      },
+      {
+        "id": "logging",
+        "name": "Logging",
+        "next": "__end__",
+        "actions": [
+          {
+            "type": "logging",
+            "params": {
+              "message": "done"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

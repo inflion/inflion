@@ -14,7 +14,7 @@ import "testing"
 
 func TestFlow(t *testing.T) {
 	f := NewOpsFlow(MockRecipeReader{})
-	_, err := f.Run()
+	_, err := f.Run(NewExecutionContext())
 	if err != nil {
 		t.Error(err)
 	}
