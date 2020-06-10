@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "format": {
+      "version": 1
+    }
+  },
+  "body": {
+    "conditions": [
+      {
+        "id": "cond_id_1",
+        "expressions": [
+          {
+            "input": "last.result",
+            "operation": "equals",
+            "value": "true"
+          }
+        ],
+        "if_true": {
+          "next_id": "stage_id_3"
+        },
+        "if_false": {
+          "next_id": "stage_id_4"
+        }
+      }
+    ],
+    "stages": [
+      {
+        "id": "stage_id_1",
+        "next": "stage_id_2",
+        "name": "Monitoring",
+        "actions": [
+          {
+            "type": "matcher",
+            "params": {
+              "contains": "abc"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stage_id_2",
+        "next": "cond_id_1",
+        "name": "Action",
+        "actions": [
+          {
+            "type": "instance",
+            "params": {
+              "action": "restart",
+              "target": "event.instance_id"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stage_id_3",
+        "name": "Notification",
+        "next": "stage_id_4",
+        "actions": [
+          {
+            "type": "matcher",
+            "params": {
+              "contains": "abc"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stage_id_4",
+        "name": "Logging",
+        "next": "__end__",
+        "actions": [
+          {
+            "type": "logging",
+            "params": {
+              "message": "done"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

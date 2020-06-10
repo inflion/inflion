@@ -12,17 +12,17 @@ package ops
 
 import (
 	"github.com/inflion/inflion/internal/ops/monitor"
-	"github.com/inflion/inflion/internal/ops/notification"
+	"github.com/inflion/inflion/internal/ops/broker"
 	"github.com/inflion/inflion/internal/ops/syncer"
 )
 
 type Ops struct {
 	monitor monitor.Monitor
-	broker  notification.Broker
+	broker  broker.Broker
 	syncer  syncer.Syncer
 }
 
-func newOps(monitor monitor.Monitor, broker notification.Broker, syncer syncer.Syncer) Ops {
+func newOps(monitor monitor.Monitor, broker broker.Broker, syncer syncer.Syncer) Ops {
 	return Ops{
 		monitor: monitor,
 		broker:  broker,

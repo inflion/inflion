@@ -8,39 +8,22 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package notification
+package broker
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/inflion/inflion/internal/ops/monitor"
-	"github.com/inflion/inflion/internal/store"
-	_ "github.com/lib/pq"
 	"github.com/nsqio/go-nsq"
 	"log"
 	"os"
 )
 
-const topicName = "monitoring-events"
-
-// Broker is to handle monitoring events.
-type Broker struct {
-	querier store.Querier
+type nsqConsumer struct {
+	processor eventProcessor
 }
 
-type messageHandler struct {
-	querier store.Querier
-}
-
-func NewBroker(querier store.Querier) Broker {
-	staticActionRegistry.actions["slack"] = slackNotificationAction{notifier: newThrottledNotification(querier, newNotification(querier).Notifiers)}
-
-	return Broker{
-		querier: querier,
-	}
-}
-
-func (b *Broker) Run() {
+func (n *nsqConsumer) consume(processor eventProcessor) {
+	n.processor = processor
 	nsqlookupdHost := os.Getenv("NSQLOOKUPD_HOST")
 	nsqlookupdPort := os.Getenv("NSQLOOKUPD_PORT")
 
@@ -50,9 +33,7 @@ func (b *Broker) Run() {
 		log.Fatal(err)
 	}
 
-	consumer.AddHandler(&messageHandler{
-		querier: b.querier,
-	})
+	consumer.AddHandler(n)
 
 	err = consumer.ConnectToNSQLookupd(nsqlookupdHost + ":" + nsqlookupdPort)
 	if err != nil {
@@ -63,9 +44,7 @@ func (b *Broker) Run() {
 	consumer.Stop()
 }
 
-func (h *messageHandler) HandleMessage(message *nsq.Message) error {
-	ctx := context.Background()
-
+func (n *nsqConsumer) HandleMessage(message *nsq.Message) error {
 	if len(message.Body) == 0 {
 		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
 		return nil
@@ -78,27 +57,10 @@ func (h *messageHandler) HandleMessage(message *nsq.Message) error {
 		return nil
 	}
 
-	notificationRule := notificationRule{querier: h.querier}
-	matchedRules, err := notificationRule.match(event)
+	err = n.processor.process(event)
 	if err != nil {
 		log.Println(err)
-		return err
-	}
-
-	actions, err := h.querier.GetActions(ctx, event.ProjectId)
-	if err != nil {
-		log.Println(err)
-	}
-
-	for _, rule := range matchedRules {
-		for _, rawAction := range actions {
-			ae, err := newActionExecutor(rawAction, event)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			ae.exec(rule)
-		}
+		return nil
 	}
 
 	return nil

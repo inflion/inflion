@@ -40,11 +40,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAwsAccountStmt, err = db.PrepareContext(ctx, getAwsAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAwsAccount: %w", err)
 	}
+	if q.getFlowByNameStmt, err = db.PrepareContext(ctx, getFlowByName); err != nil {
+		return nil, fmt.Errorf("error preparing query GetFlowByName: %w", err)
+	}
 	if q.getInvitationByTokenStmt, err = db.PrepareContext(ctx, getInvitationByToken); err != nil {
 		return nil, fmt.Errorf("error preparing query GetInvitationByToken: %w", err)
 	}
-	if q.getNotificationRulesStmt, err = db.PrepareContext(ctx, getNotificationRules); err != nil {
-		return nil, fmt.Errorf("error preparing query GetNotificationRules: %w", err)
+	if q.getMatcherRulesStmt, err = db.PrepareContext(ctx, getMatcherRules); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRules: %w", err)
 	}
 	if q.getSlackWebHooksStmt, err = db.PrepareContext(ctx, getSlackWebHooks); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSlackWebHooks: %w", err)
@@ -99,14 +102,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getAwsAccountStmt: %w", cerr)
 		}
 	}
+	if q.getFlowByNameStmt != nil {
+		if cerr := q.getFlowByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getFlowByNameStmt: %w", cerr)
+		}
+	}
 	if q.getInvitationByTokenStmt != nil {
 		if cerr := q.getInvitationByTokenStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getInvitationByTokenStmt: %w", cerr)
 		}
 	}
-	if q.getNotificationRulesStmt != nil {
-		if cerr := q.getNotificationRulesStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getNotificationRulesStmt: %w", cerr)
+	if q.getMatcherRulesStmt != nil {
+		if cerr := q.getMatcherRulesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMatcherRulesStmt: %w", cerr)
 		}
 	}
 	if q.getSlackWebHooksStmt != nil {
@@ -184,8 +192,9 @@ type Queries struct {
 	countProjectCollaboratorByUserIdStmt *sql.Stmt
 	getActionsStmt                       *sql.Stmt
 	getAwsAccountStmt                    *sql.Stmt
+	getFlowByNameStmt                    *sql.Stmt
 	getInvitationByTokenStmt             *sql.Stmt
-	getNotificationRulesStmt             *sql.Stmt
+	getMatcherRulesStmt                  *sql.Stmt
 	getSlackWebHooksStmt                 *sql.Stmt
 	linkInstanceWithServiceStmt          *sql.Stmt
 	resolveIdByInstanceIdStmt            *sql.Stmt
@@ -204,8 +213,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		countProjectCollaboratorByUserIdStmt: q.countProjectCollaboratorByUserIdStmt,
 		getActionsStmt:                       q.getActionsStmt,
 		getAwsAccountStmt:                    q.getAwsAccountStmt,
+		getFlowByNameStmt:                    q.getFlowByNameStmt,
 		getInvitationByTokenStmt:             q.getInvitationByTokenStmt,
-		getNotificationRulesStmt:             q.getNotificationRulesStmt,
+		getMatcherRulesStmt:                  q.getMatcherRulesStmt,
 		getSlackWebHooksStmt:                 q.getSlackWebHooksStmt,
 		linkInstanceWithServiceStmt:          q.linkInstanceWithServiceStmt,
 		resolveIdByInstanceIdStmt:            q.resolveIdByInstanceIdStmt,

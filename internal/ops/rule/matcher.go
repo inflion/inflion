@@ -8,26 +8,26 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package notification
+package rule
 
 import "strings"
 
-type ruleMatcherContains struct {
-	value string
+type ContainsMatcher struct {
+	Value string
 }
 
-func (c *ruleMatcherContains) match(value interface{}) bool {
+func (c *ContainsMatcher) match(value interface{}) bool {
 	if v, ok := value.(string); ok {
-		return strings.Contains(v, c.value)
+		return strings.Contains(v, c.Value)
 	}
 	return false
 }
 
-type ruleMatcherExact struct {
+type exactMatcher struct {
 	value string
 }
 
-func (c *ruleMatcherExact) match(value interface{}) bool {
+func (c *exactMatcher) match(value interface{}) bool {
 	if v, ok := value.(string); ok {
 		return v == c.value
 	}

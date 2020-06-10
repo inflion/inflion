@@ -1,8 +1,11 @@
 .idea
 .env
+.env.*
 .DS_Store
 .vs_code
 node_modueles
 tmp
 bin
+exp
 auth.json
+inflionserver/inflionserverpb/google
