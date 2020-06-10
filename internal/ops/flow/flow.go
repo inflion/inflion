@@ -41,7 +41,7 @@ func NewOpsFlow(reader RecipeReader) *OpsFlow {
 	return &OpsFlow{reader: reader}
 }
 
-func (o OpsFlow) Run() (ExecutionResult, error) {
+func (o OpsFlow) Run(context ExecutionContext) (ExecutionResult, error) {
 	log.Println("run flow")
 
 	r, err := o.reader.Read()
@@ -54,5 +54,5 @@ func (o OpsFlow) Run() (ExecutionResult, error) {
 		return ExecutionResult{}, err
 	}
 
-	return NewExecutor(AggregateActionLoader{}, NewExecutionContext()).run(r)
+	return NewExecutor(AggregateActionLoader{}, context).run(r)
 }

@@ -23,20 +23,20 @@ type Recipe struct {
 // At first, stage linking does not exist.
 // The reason is that JSON can't hold links to an object.
 func (r Recipe) LinkToNextStages() (recipe Recipe, err error) {
-	_, recipe, err = r.link(r.Stages.getFirstStage(), r)
+	_, recipe, err = r.link(r.Stages.getFirstStage(), r, 0)
 	if err != nil {
 		return recipe, err
 	}
 
-	if recipe.hasUnresolvedStages(recipe) {
-		return recipe, errors.New("stage resolving failed")
-	}
+	//if recipe.hasUnresolvedStages(recipe) {
+	//	return recipe, errors.New("stage resolving failed")
+	//}
 
 	return recipe, nil
 }
 
-func (r Recipe) link(node Node, recipe Recipe) (resolvedNode Node, resolvedRecipe Recipe, err error) {
-	log.Printf("resolve %s", node.getId())
+func (r Recipe) link(node Node, recipe Recipe, depth int) (resolvedNode Node, resolvedRecipe Recipe, err error) {
+	log.Printf("resolve: %s, depth: %d", node.getId(), depth)
 
 	if node.isStage() {
 		s := node.(Stage)
@@ -51,27 +51,32 @@ func (r Recipe) link(node Node, recipe Recipe) (resolvedNode Node, resolvedRecip
 
 		if !nextNode.wasNextStageResolved() {
 			log.Printf("next node id is: %s ", nextNode.getId())
-			resolvedNode, resolvedRecipe, err = recipe.link(nextNode, recipe)
+			resolvedNode, resolvedRecipe, err = recipe.link(nextNode, recipe, depth + 1)
+			if err != nil {
+				return resolvedNode, resolvedRecipe, err
+			}
+
 			if resolvedNode == nil {
 				return resolvedNode, resolvedRecipe, errors.New("resolved node is nil")
 			} else {
 				log.Printf("next node of stage(%s) was resolved: %s", s.Id, resolvedNode.getId())
 			}
-			if err != nil {
-				return resolvedNode, resolvedRecipe, err
+
+			// Assert never occur
+			if nextNode.getId() != resolvedNode.getId() {
+				log.Fatalf("ASSERTION FAILURE: %s, %s", nextNode.getId(), resolvedNode.getId())
 			}
+
+			log.Printf("resolved node id: %s", resolvedNode.getId())
+
 			s.NextStage.Node = resolvedNode
 		} else {
 			log.Printf("next node already solved at %s", s.Id)
-			resolvedNode = nextNode
-			s.NextStage.Node = nextNode
 		}
 
 		recipe.Stages = recipe.Stages.replaceById(s.Id, s)
-		resolvedRecipe = recipe
-	}
-
-	if node.isCondition() {
+		return s, recipe, nil
+	} else if node.isCondition() {
 		log.Println("resolve condition")
 		c := node.(Condition)
 
@@ -81,7 +86,7 @@ func (r Recipe) link(node Node, recipe Recipe) (resolvedNode Node, resolvedRecip
 		}
 		if !nextTrueNode.wasNextStageResolved() {
 			log.Printf("cond(%s) ture node is unsolved, link to resolve node id(%s)", c.Id, c.IfTrue.Id)
-			resolvedNode, resolvedRecipe, err = recipe.link(nextTrueNode, recipe)
+			resolvedNode, resolvedRecipe, err = recipe.link(nextTrueNode, recipe, depth + 1)
 			if err != nil {
 				return resolvedNode, resolvedRecipe, err
 			}
@@ -95,8 +100,8 @@ func (r Recipe) link(node Node, recipe Recipe) (resolvedNode Node, resolvedRecip
 			return node, recipe, err
 		}
 		if !nextFalseNode.wasNextStageResolved() {
-			log.Printf("cond(%s) ture node is unsolved, link to resolve node id(%s)", c.Id, c.IfFalse.Id)
-			resolvedNode, resolvedRecipe, err = r.link(nextFalseNode, recipe)
+			log.Printf("cond(%s) false node is unsolved, link to resolve node id(%s)", c.Id, c.IfFalse.Id)
+			resolvedNode, resolvedRecipe, err = r.link(nextFalseNode, recipe, depth + 1)
 			if err != nil {
 				return resolvedNode, resolvedRecipe, err
 			}
@@ -105,13 +110,12 @@ func (r Recipe) link(node Node, recipe Recipe) (resolvedNode Node, resolvedRecip
 			c.IfFalse.Node = nextFalseNode
 		}
 
-		resolvedNode = c
 		recipe.Conditions = recipe.Conditions.ReplaceById(c.Id, c)
-		resolvedRecipe = recipe
 		log.Println("resolved condition node is " + c.Id)
+		return c, recipe, nil
+	} else {
+		return Stage{}, Recipe{}, errors.New("node is neither stage nor condition")
 	}
-
-	return resolvedNode, resolvedRecipe, nil
 }
 
 func (r Recipe) SearchNodeById(id string) (Node, error) {

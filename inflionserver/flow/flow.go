@@ -29,8 +29,15 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		return nil, err
 	}
 
+	ec := flow.NewExecutionContext()
+	ec.AddFields("system", flow.ExecutionFields{
+		Values: map[string]interface{}{
+			"project": request.Project,
+		},
+	})
+
 	opsflow := flow.NewOpsFlow(store.NewStoreRecipeReader(request.Project, id, f.Store))
-	result, err := opsflow.Run()
+	result, err := opsflow.Run(ec)
 	if err != nil {
 		return nil, err
 	}

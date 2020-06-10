@@ -8,11 +8,10 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package json
+package flow
 
 import (
 	"encoding/json"
-	"github.com/inflion/inflion/internal/ops/flow"
 )
 
 func UnmarshalV1(v1FormattedJson []byte) (*FlowJsonV1, error) {
@@ -38,8 +37,8 @@ type ExpressionJsonV1 struct {
 	Value     string `json:"value"`
 }
 
-func (e *ExpressionJsonV1) mustConvert() flow.Expression {
-	return flow.Expression{
+func (e *ExpressionJsonV1) mustConvert() Expression {
+	return Expression{
 		Input:     e.Input,
 		Operation: e.Operation,
 		Value:     e.Value,
@@ -57,23 +56,23 @@ type ConditionJsonV1 struct {
 	} `json:"if_false"`
 }
 
-func (c *ConditionJsonV1) mustConvert() flow.Condition {
-	return flow.Condition{
+func (c *ConditionJsonV1) mustConvert() Condition {
+	return Condition{
 		Id:          c.Id,
 		Expressions: c.mustConvertExpressions(),
-		IfTrue: flow.NextStage{
+		IfTrue: NextStage{
 			Id:   c.IfTrue.NextId,
 			Node: nil,
 		},
-		IfFalse: flow.NextStage{
+		IfFalse: NextStage{
 			Id:   c.IfFalse.NextId,
 			Node: nil,
 		},
 	}
 }
 
-func (c *ConditionJsonV1) mustConvertExpressions() []flow.Expression {
-	var e []flow.Expression
+func (c *ConditionJsonV1) mustConvertExpressions() []Expression {
+	var e []Expression
 	for _, ex := range c.Expressions {
 		e = append(e, ex.mustConvert())
 	}
@@ -92,18 +91,18 @@ type StageActionJsonV1 struct {
 	Params map[string]string `json:"params"`
 }
 
-func (v StageActionJsonV1) mustConvert() flow.Action {
-	return flow.Action{
+func (v StageActionJsonV1) mustConvert() Action {
+	return Action{
 		Type:   v.Type,
 		Params: v.Params,
 	}
 }
 
-func (v StageJsonV1) mustConvert() flow.Stage {
-	return flow.Stage{
+func (v StageJsonV1) mustConvert() Stage {
+	return Stage{
 		Id:   v.Id,
 		Name: v.Name,
-		NextStage: flow.NextStage{
+		NextStage: NextStage{
 			Id:   v.Next,
 			Node: nil,
 		},
@@ -111,8 +110,8 @@ func (v StageJsonV1) mustConvert() flow.Stage {
 	}
 }
 
-func (v StageJsonV1) mustConvertActions() flow.Actions {
-	a := flow.Actions{}
+func (v StageJsonV1) mustConvertActions() Actions {
+	a := Actions{}
 	for _, aj := range v.Actions {
 		a.Actions = append(a.Actions, aj.mustConvert())
 	}
