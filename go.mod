@@ -20,6 +20,7 @@ require (
 	github.com/golang/protobuf v1.3.5
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/howeyc/fsnotify v0.9.0 // indirect
 	github.com/icco/graphql v0.0.0-20191015121235-34913edb37b5 // indirect
 	github.com/jinzhu/gorm v1.9.11 // indirect
