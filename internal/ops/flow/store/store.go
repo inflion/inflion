@@ -3,7 +3,6 @@ package store
 import (
 	"github.com/google/uuid"
 	"github.com/inflion/inflion/internal/ops/flow"
-	"github.com/inflion/inflion/internal/ops/flow/json"
 )
 
 type Flow struct {
@@ -75,7 +74,7 @@ func (s StoreRecipeReader) Read() (flow.Recipe, error) {
 		return flow.Recipe{}, err
 	}
 
-	r, err := json.Unmarshal([]byte(f.Body))
+	r, err := flow.Unmarshal([]byte(f.Body))
 	if err != nil {
 		return flow.Recipe{}, err
 	}

@@ -33,21 +33,6 @@ func Test_next_stage_should_be_cond1_via_first_stage_then_next_stage(t *testing.
 	}
 }
 
-func Test_next_stage_should_be_stage3_via_cond1(t *testing.T) {
-	r, err := recipe.LinkToNextStages()
-	if err != nil {
-		t.Error(err)
-	}
-
-	cond1 := r.Stages.getFirstStage().getNextStage().Node.(Condition)
-
-	want := "stage3-id"
-	got := cond1.IfTrue.Node.(Stage).Id
-	if want != got {
-		t.Errorf("got %s want %s", got, want)
-	}
-}
-
 func Test_next_stage_should_be_cond1_in_stage1(t *testing.T) {
 	r, err := recipe.LinkToNextStages()
 	if err != nil {

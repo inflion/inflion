@@ -3,7 +3,6 @@ package broker
 import (
 	"context"
 	"github.com/inflion/inflion/internal/ops/flow"
-	flowjson "github.com/inflion/inflion/internal/ops/flow/json"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/rule"
 	"github.com/inflion/inflion/internal/store"
@@ -70,7 +69,7 @@ type ByteRecipeReader struct {
 }
 
 func (b ByteRecipeReader) Read() (flow.Recipe, error) {
-	recipe, err := flowjson.Unmarshal(b.body)
+	recipe, err := flow.Unmarshal(b.body)
 	if err != nil {
 		return flow.Recipe{}, err
 	}

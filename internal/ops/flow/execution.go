@@ -24,7 +24,7 @@ func NewExecutionContextWithFields(fields map[string]ExecutionFields) ExecutionC
 	}
 }
 
-func (e ExecutionContext) addFields(key string, fields ExecutionFields) ExecutionContext {
+func (e ExecutionContext) AddFields(key string, fields ExecutionFields) ExecutionContext {
 	e.ExecutionFields.Fields[key] = fields
 	return e
 }

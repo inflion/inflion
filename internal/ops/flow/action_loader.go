@@ -45,10 +45,14 @@ func (e EmbeddedActionLoader) Load(action Action) (ActionExecutor, error) {
 	switch action.Type {
 	case "params":
 		return ParamsActionExecutor{}, nil
+	case "config":
+		return ConfigActionExecutor{}, nil
 	case "matcher":
 		return MatcherActionExecutor{}, nil
 	case "instance":
 		return InstanceActionExecutor{}, nil
+	case "instance-data":
+		return InstanceDataActionExecutor{}, nil
 	case "notification":
 		return NotificationActionExecutor{}, nil
 	case "logging":
