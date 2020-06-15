@@ -166,3 +166,41 @@ message DeleteRuleRequest {
 message DeleteRuleResponse {
   string id = 1;
 }
+
+service Job {
+  rpc Create (CreateJobRequest) returns (CreateJobResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/jobs"
+      body: "*"
+    };
+  }
+
+  rpc Remove (RemoveJobRequest) returns (RemoveJobResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/jobs"
+      body: "*"
+    };
+  }
+}
+
+message CreateJobRequest {
+  int32 id = 1;
+  string project = 2;
+  string flowId = 3;
+  string schedule = 4;
+}
+
+message CreateJobResponse {
+  string id = 1;
+}
+
+message RemoveJobRequest {
+  int32 id = 1;
+  string project = 2;
+}
+
+message RemoveJobResponse {
+  int32 id = 1;
+}

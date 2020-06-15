@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	cfgFile  string
-	rootCmd  = &cobra.Command{
+	cfgFile string
+	rootCmd = &cobra.Command{
 		Use:        "lionctl",
 		Short:      "lionctl",
 		SuggestFor: []string{"lionctl"},
@@ -65,6 +65,7 @@ func init() {
 
 	rootCmd.AddCommand(flowCommand())
 	rootCmd.AddCommand(ruleCommand())
+	rootCmd.AddCommand(jobCommand())
 }
 
 func Main() {
