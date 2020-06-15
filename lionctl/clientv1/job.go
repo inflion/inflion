@@ -2,7 +2,9 @@ package clientv1
 
 import (
 	"context"
+	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	"github.com/inflion/inflion/internal/job"
 )
 
 type Job struct {
@@ -13,6 +15,7 @@ type Job struct {
 }
 
 type JobClient interface {
+	List(project string) ([]job.Job, error)
 	Create(job Job) error
 	Remove(job Job) error
 }
@@ -25,6 +28,35 @@ func NewJobClient(endpoint string) JobClient {
 	return JobClientPb{endpoint: endpoint}
 }
 
+func (f JobClientPb) List(project string) ([]job.Job, error) {
+	c := grpcConnection{endpoint: f.endpoint}
+	err := c.connect()
+	if err != nil {
+		return nil, err
+	}
+
+	client := pb.NewJobInfoClient(c.conn)
+	r, err := client.List(context.Background(), &pb.ListJobsRequest{
+		Project: project,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var jobs []job.Job
+
+	for _, rj := range r.Jobs {
+		jobs = append(jobs, job.Job{
+			Id:       job.JobID(rj.Id),
+			Project:  rj.Project,
+			Schedule: rj.Schedule,
+			FlowId:   uuid.MustParse(rj.FlowId),
+		})
+	}
+
+	return jobs, nil
+}
+
 func (f JobClientPb) Create(job Job) error {
 	c := grpcConnection{endpoint: f.endpoint}
 	err := c.connect()
@@ -32,7 +64,7 @@ func (f JobClientPb) Create(job Job) error {
 		return err
 	}
 
-	client := pb.NewJobClient(c.conn)
+	client := pb.NewJobInfoClient(c.conn)
 	_, err = client.Create(context.Background(), &pb.CreateJobRequest{
 		Id:       job.Id,
 		Project:  job.Project,
@@ -53,7 +85,7 @@ func (f JobClientPb) Remove(job Job) error {
 		return err
 	}
 
-	client := pb.NewJobClient(c.conn)
+	client := pb.NewJobInfoClient(c.conn)
 	_, err = client.Remove(context.Background(), &pb.RemoveJobRequest{
 		Id:      job.Id,
 		Project: job.Project,

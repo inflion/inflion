@@ -5,7 +5,15 @@ package jobserverpb;
 // for grpc-gateway
 import "google/api/annotations.proto";
 
-service Job {
+service JobStore {
+  rpc List (ListJobsRequest) returns (ListJobsResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/jobs"
+      body: "*"
+    };
+  }
+
   rpc Create (CreateJobRequest) returns (CreateJobResponse)
   {
     option (google.api.http) = {
@@ -21,6 +29,21 @@ service Job {
       body: "*"
     };
   }
+}
+
+message Job {
+  int32 id = 1;
+  string project = 2;
+  string flowId = 3;
+  string schedule = 4;
+}
+
+message ListJobsRequest {
+  string project = 1;
+}
+
+message ListJobsResponse {
+  repeated Job jobs = 1;
 }
 
 message CreateJobRequest {

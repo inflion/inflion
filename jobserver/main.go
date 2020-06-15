@@ -40,7 +40,7 @@ func main() {
 		scheduler,
 	)
 
-	pb.RegisterJobServer(s, js)
+	pb.RegisterJobStoreServer(s, js)
 
 	scheduler.Start()
 

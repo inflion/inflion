@@ -25,10 +25,43 @@ func jobCommand() *cobra.Command {
 		Short: "job related commands",
 	}
 
+	cmd.AddCommand(jobListCommand())
 	cmd.AddCommand(jobCreateCommand())
 	cmd.AddCommand(jobRemoveCommand())
 
 	return cmd
+}
+
+func jobListCommand() *cobra.Command {
+	cmd := cobra.Command{
+		Use:   "list",
+		Short: "list jobs",
+		Run: func(cmd *cobra.Command, args []string) {
+			c := clientv1.NewJobClient(endpoint())
+
+			project, _ := cmd.Flags().GetString("project")
+
+			r, err := c.List(project)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println("Job ID, Schedule, Flow")
+			for _, j := range r {
+				fmt.Printf("%d, %s, %s\n", j.Id, j.Schedule, j.FlowId)
+			}
+
+			os.Exit(0)
+		},
+	}
+
+	cmd.Flags().StringP("project", "p", "", "project")
+	err := cmd.MarkFlagRequired("project")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &cmd
 }
 
 func jobCreateCommand() *cobra.Command {
