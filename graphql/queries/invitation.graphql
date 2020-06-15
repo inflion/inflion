@@ -1,5 +1,0 @@
-query Invitation($projectId: bigint!) {
-  project_invitation(where: { project_id: { _eq: $projectId } }) {
-    mail_address
-  }
-}

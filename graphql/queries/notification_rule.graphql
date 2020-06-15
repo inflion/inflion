@@ -1,7 +1,0 @@
-query NotificationRule($ruleId: bigint!) {
-  notification_rule(where: { id: { _eq: $ruleId } }) {
-    id
-    rule_name
-    rules
-  }
-}

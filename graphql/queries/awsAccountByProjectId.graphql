@@ -1,8 +1,0 @@
-query awsAccountByProjectId($projectId: bigint!) {
-  aws_account(where: { project_id: { _eq: $projectId } }) {
-    id
-    account_id
-    role_name
-    external_id
-  }
-}

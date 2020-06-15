@@ -1,47 +1,6 @@
 version: "3.7"
 
 services:
-  api:
-    build:
-      context: ./
-      dockerfile: ./Dockerfile
-    command: -c .air.d/.server.air.conf
-    depends_on:
-      - db
-      - timescale
-      - nsqd
-      - mailhog
-    volumes:
-      - ../../.:/go/src/github.com/inflion/inflion
-    restart: always
-    ports:
-      - "${WEB_PORT}:8080"
-      - 2345:2345
-      - 5001:5001
-    environment:
-      DOMAIN: "${DOMAIN}"
-      WEB_EXTERNAL_PORT: "${WEB_EXTERNAL_PORT}"
-      DB_HOST: "${DB_HOST}"
-      DB_DATABASE: "${DB_DATABASE}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      DB_PORT: ${DB_INTERNAL_PORT}
-      TIMESCALE_DB_HOST: "${TIMESCALE_DB_HOST}"
-      TIMESCALE_DB_DATABASE: "${TIMESCALE_DB_DATABASE}"
-      TIMESCALE_DB_USERNAME: "${TIMESCALE_DB_USERNAME}"
-      TIMESCALE_DB_PASSWORD: "${TIMESCALE_DB_PASSWORD}"
-      TIMESCALE_DB_PORT: ${TIMESCALE_DB_INTERNAL_PORT}
-      AWS_SDK_LOAD_CONFIG: 0
-      AWS_DEFAULT_REGION: ${AWS_REGION}
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      RUN_ENV: dev
-      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      SMTP_HOST: mailhog
-      SMTP_PORT: 1025
-
   collector:
     build:
       context: ./
@@ -195,43 +154,22 @@ services:
     restart: always
     ports:
       - "${TIMESCALE_DB_EXTERNAL_PORT}:${TIMESCALE_DB_INTERNAL_PORT}"
+    volumes:
+      - ../.././internal/timescale/schema:/docker-entrypoint-initdb.d
 
-  hasura:
-    image: hasura/graphql-engine:v1.2.0
-    ports:
-      - 8080:8080
+  migration:
+    build:
+      context: ./docker/migration
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
     depends_on:
       - db
-      - api
-    restart: always
-    environment:
-      HASURA_GRAPHQL_DEV_MODE: 'true'
-      HASURA_GRAPHQL_DATABASE_URL: 'postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_DATABASE}'
-      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
-      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
-
-  hasurats:
-    image: hasura/graphql-engine:v1.2.0.cli-migrations-v2
-    ports:
-      - 8081:8080
-    volumes:
-      - ../../api/hasura/timescale/migrations:/hasura-migrations
-      - ../../api/hasura/timescale/metadata:/hasura-metadata
-    depends_on:
-      - timescale
-      - api
-    restart: always
-    environment:
-      HASURA_GRAPHQL_MIGRATIONS_DIR: /hasura-migrations
-      HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
-      HASURA_GRAPHQL_DEV_MODE: 'true'
-      HASURA_GRAPHQL_DATABASE_URL: 'postgres://${TIMESCALE_DB_USERNAME}:${TIMESCALE_DB_PASSWORD}@${TIMESCALE_DB_HOST}:${TIMESCALE_DB_INTERNAL_PORT}/${TIMESCALE_DB_DATABASE}'
-      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      HASURA_GRAPHQL_ADMIN_SECRET: '${HASURA_GRAPHQL_ADMIN_SECRET}'
-      HASURA_GRAPHQL_JWT_SECRET: '${HASURA_GRAPHQL_JWT_SECRET}'
 
   nsqlookupd:
     image: nsqio/nsq
@@ -249,6 +187,7 @@ services:
     ports:
       - "4150:4150"
       - "4151:4151"
+
   nsqadmin:
     image: nsqio/nsq
     command: /nsqadmin --lookupd-http-address=nsqlookupd:4161

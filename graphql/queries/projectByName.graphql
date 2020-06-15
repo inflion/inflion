@@ -1,9 +1,0 @@
-query projectByName($name: String!) {
-  project(where: { name: { _eq: $name } }) {
-    id
-    name
-    description
-    created_at
-    updated_at
-  }
-}

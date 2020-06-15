@@ -1,5 +1,0 @@
-mutation ConfirmProjectInvitation($input: ConfirmInvitationInput!) {
-  confirmInvitation(input: $input) {
-    result
-  }
-}
