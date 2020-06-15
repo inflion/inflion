@@ -36,6 +36,39 @@ func (c *grpcConnection) close() error {
 	return c.conn.Close()
 }
 
+func (j JobServer) List(ctx context.Context, request *spb.ListJobsRequest) (*spb.ListJobsResponse, error) {
+	c := grpcConnection{
+		endpoint: j.endpoint,
+	}
+	err := c.connect()
+	if err != nil {
+		return nil, err
+	}
+
+	jc := cpb.NewJobStoreClient(c.conn)
+
+	r, err := jc.List(ctx, &cpb.ListJobsRequest{
+		Project: request.Project,
+	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	resp := &spb.ListJobsResponse{}
+
+	for _, j := range r.Jobs {
+		resp.Jobs = append(resp.Jobs, &spb.Job{
+			Id:       j.Id,
+			Project:  j.Project,
+			FlowId:   j.FlowId,
+			Schedule: j.Schedule,
+		})
+	}
+
+	return resp, nil
+}
+
 func (j JobServer) Create(ctx context.Context, request *spb.CreateJobRequest) (*spb.CreateJobResponse, error) {
 	log.Println("job create")
 	c := grpcConnection{
@@ -46,7 +79,7 @@ func (j JobServer) Create(ctx context.Context, request *spb.CreateJobRequest) (*
 		return nil, err
 	}
 
-	jc := cpb.NewJobClient(c.conn)
+	jc := cpb.NewJobStoreClient(c.conn)
 
 	_, err = jc.Create(ctx, &cpb.CreateJobRequest{
 		Id:       request.Id,
@@ -74,7 +107,7 @@ func (j JobServer) Remove(ctx context.Context, request *spb.RemoveJobRequest) (*
 		return nil, err
 	}
 
-	jc := cpb.NewJobClient(c.conn)
+	jc := cpb.NewJobStoreClient(c.conn)
 
 	r, err := jc.Remove(ctx, &cpb.RemoveJobRequest{
 		Id:      request.Id,
