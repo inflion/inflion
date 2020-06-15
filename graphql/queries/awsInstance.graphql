@@ -1,6 +1,0 @@
-query Instance($projectId: bigint!, $instanceId: String!) {
-  instance(where: {project_id: {_eq: $projectId}, instance_id: {_eq: $instanceId}}) {
-    instance_id
-    name
-  }
-}

@@ -1,5 +1,0 @@
-mutation DeleteSlackWebHook($id: bigint!) {
-  delete_slack_webhook(where: { id: { _eq: $id } }) {
-    affected_rows
-  }
-}

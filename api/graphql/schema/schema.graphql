@@ -1,7 +1,0 @@
-type Query {
-    aws_instance(id: ID!): AwsInstance
-    aws_instances(projectId: ID!): [AwsInstance!]!
-}
-
-scalar Time
-scalar Map

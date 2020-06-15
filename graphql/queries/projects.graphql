@@ -1,7 +1,0 @@
-query Projects {
-  project {
-    id
-    name
-    description
-  }
-}
