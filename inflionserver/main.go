@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/inflion/inflion/inflionserver/flow"
 	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	"github.com/inflion/inflion/inflionserver/job"
 	"github.com/inflion/inflion/inflionserver/rule"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/ops/rule/rulestore"
@@ -25,6 +26,7 @@ func main() {
 
 	pb.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
 	pb.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
+	pb.RegisterJobServer(s, job.NewJobServer())
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
