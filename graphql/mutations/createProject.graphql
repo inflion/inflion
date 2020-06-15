@@ -1,7 +1,0 @@
-mutation CreateProject($input: project_insert_input!) {
-  insert_project(objects: [$input]) {
-    returning {
-      id
-    }
-  }
-}
