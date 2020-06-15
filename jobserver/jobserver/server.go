@@ -20,6 +20,27 @@ func NewJobServer(store job.Store, scheduler job.JobScheduler) JobServer {
 	}
 }
 
+func (j JobServer) List(ctx context.Context, request *pb.ListJobsRequest) (*pb.ListJobsResponse, error) {
+	jobs, err := j.store.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &pb.ListJobsResponse{
+	}
+
+	for _, j := range jobs {
+		r.Jobs = append(r.Jobs, &pb.Job{
+			Id:       int32(j.Id),
+			Project:  j.Project,
+			FlowId:   j.FlowId.String(),
+			Schedule: j.Schedule,
+		})
+	}
+
+	return r, nil
+}
+
 func (j JobServer) Create(ctx context.Context, request *pb.CreateJobRequest) (*pb.CreateJobResponse, error) {
 	log.Println("job create request")
 

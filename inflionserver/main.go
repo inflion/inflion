@@ -26,7 +26,7 @@ func main() {
 
 	pb.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
 	pb.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
-	pb.RegisterJobServer(s, job.NewJobServer())
+	pb.RegisterJobInfoServer(s, job.NewJobServer())
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
