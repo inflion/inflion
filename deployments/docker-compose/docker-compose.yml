@@ -1,6 +1,64 @@
 version: "3.7"
 
 services:
+  inflionserver:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.inflionserver.air.conf
+    depends_on:
+      - db
+      - nsqd
+      - etcd
+      - jobserver
+    ports:
+      - "50051:50051"
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      AWS_SDK_LOAD_CONFIG: 0
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      ETCD_ENDPOINTS: ${ETCD_ENDPOINTS}
+      JOB_SERVER_ENDPOINT: ${JOB_SERVER_ENDPOINT}
+      RUN_ENV: dev
+
+  jobserver:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    command: -c .air.d/.jobserver.air.conf
+    depends_on:
+      - db
+      - nsqd
+      - etcd
+    ports:
+      - "50052:50051"
+    volumes:
+      - ../../.:/go/src/github.com/inflion/inflion
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: ${DB_INTERNAL_PORT}
+      AWS_SDK_LOAD_CONFIG: 0
+      AWS_DEFAULT_REGION: ${AWS_REGION}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      ETCD_ENDPOINTS: ${ETCD_ENDPOINTS}
+      RUN_ENV: dev
+
   collector:
     build:
       context: ./

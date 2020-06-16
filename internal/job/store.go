@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"go.etcd.io/etcd/clientv3"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -122,7 +123,7 @@ func (e EtcdStore) connect() *clientv3.Client {
 	var err error
 	if e.client == nil {
 		e.client, err = clientv3.New(clientv3.Config{
-			Endpoints:   []string{"localhost:2379"},
+			Endpoints:   strings.Split(os.Getenv("ETCD_ENDPOINTS"), ","),
 			DialTimeout: 5 * time.Second,
 		})
 		if err != nil {
