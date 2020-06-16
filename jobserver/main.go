@@ -11,7 +11,7 @@ import (
 	"net"
 )
 
-const bind = "0.0.0.0:50052"
+const bind = "0.0.0.0:50051"
 
 func main() {
 	lis, err := net.Listen("tcp", bind)
