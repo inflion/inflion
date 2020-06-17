@@ -6,6 +6,7 @@ import (
 	cpb "github.com/inflion/inflion/jobserver/jobserverpb"
 	"google.golang.org/grpc"
 	"log"
+	"os"
 	"time"
 )
 
@@ -15,7 +16,7 @@ type JobServer struct {
 
 func NewJobServer() JobServer {
 	return JobServer{
-		endpoint: "localhost:50052",
+		endpoint: os.Getenv("JOB_SERVER_ENDPOINT"),
 	}
 }
 
