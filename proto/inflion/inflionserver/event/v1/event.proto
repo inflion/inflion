@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package inflion.inflionserver.event.v1;
+option go_package = "github.com/inflion/inflion/inflionserver/event";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+message  CloudWatchEvent  {
+	string version  = 1;
+	string id = 2;
+	string detail_type = 3;
+	string source = 4;
+	string account_id = 5;
+	google.protobuf.Timestamp time = 6;
+	string region = 7;
+	repeated string resources = 8;
+ 	bytes detail = 9;
+}
+
+message EventResponse {
+  int32 id = 1;
+}
+
+service Event {
+  rpc Push (CloudWatchEvent) returns (EventResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/event/push"
+      body: "*"
+    };
+  }
+}

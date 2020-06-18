@@ -10,6 +10,7 @@
 package main
 
 import (
+	"github.com/inflion/inflion/inflionserver/event"
 	"github.com/inflion/inflion/inflionserver/flow"
 	"github.com/inflion/inflion/inflionserver/job"
 	"github.com/inflion/inflion/inflionserver/rule"
@@ -33,6 +34,7 @@ func main() {
 	flow.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
 	rule.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
 	job.RegisterJobInfoServer(s, job.NewJobServer())
+	event.RegisterEventServer(s, event.NewDefaultEventServer())
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
