@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package inflion.inflionserver.job.v1;
+option go_package = "github.com/inflion/inflion/inflionserver/job";
+
+import "google/api/annotations.proto";
+
+service JobInfo {
+  rpc List (ListJobsRequest) returns (ListJobsResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/jobs"
+      body: "*"
+    };
+  }
+
+  rpc Create (CreateJobRequest) returns (CreateJobResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/jobs"
+      body: "*"
+    };
+  }
+
+  rpc Remove (RemoveJobRequest) returns (RemoveJobResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/jobs"
+      body: "*"
+    };
+  }
+}
+
+message Job {
+  int32 id = 1;
+  string project = 2;
+  string flowId = 3;
+  string schedule = 4;
+}
+
+message ListJobsRequest {
+  string project = 1;
+}
+
+message ListJobsResponse {
+  repeated Job jobs = 1;
+}
+
+message CreateJobRequest {
+  int32 id = 1;
+  string project = 2;
+  string flowId = 3;
+  string schedule = 4;
+}
+
+message CreateJobResponse {
+  string id = 1;
+}
+
+message RemoveJobRequest {
+  int32 id = 1;
+  string project = 2;
+}
+
+message RemoveJobResponse {
+  int32 id = 1;
+}
