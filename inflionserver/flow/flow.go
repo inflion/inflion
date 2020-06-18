@@ -1,3 +1,4 @@
+//go:generate protoc -I ../../proto/inflion/inflionserver/flow/v1 ../../proto/inflion/inflionserver/flow/v1/flow.proto -I ../../proto --go_out=plugins=grpc:$GOPATH/src
 // Copyright 2020 The Inflion Authors.
 //
 // Use of this software is governed by the Business Source License
@@ -13,7 +14,6 @@ package flow
 import (
 	"context"
 	"github.com/google/uuid"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
 	"github.com/inflion/inflion/internal/ops/flow"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"
@@ -23,7 +23,7 @@ type DefaultFlowServer struct {
 	Store store.Store
 }
 
-func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*pb.RunFlowResponse, error) {
+func (f DefaultFlowServer) Run(_ context.Context, request *RunFlowRequest) (*RunFlowResponse, error) {
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, err
@@ -42,13 +42,13 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		return nil, err
 	}
 
-	return &pb.RunFlowResponse{
-		Status: pb.RunFlowResponse_SUCCESS,
+	return &RunFlowResponse{
+		Status: RunFlowResponse_SUCCESS,
 		Output: result.Message,
 	}, nil
 }
 
-func (f DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowRequest) (*pb.CreateFlowResponse, error) {
+func (f DefaultFlowServer) Create(_ context.Context, request *CreateFlowRequest) (*CreateFlowResponse, error) {
 	r, err := f.Store.Create(store.FlowCreateRequest{
 		Project: request.Project,
 		Body:    request.Body,
@@ -57,12 +57,12 @@ func (f DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowReque
 		return nil, err
 	}
 
-	return &pb.CreateFlowResponse{
+	return &CreateFlowResponse{
 		Id: r.Id.String(),
 	}, nil
 }
 
-func (f DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*pb.GetFlowResponse, error) {
+func (f DefaultFlowServer) Get(_ context.Context, request *GetFlowRequest) (*GetFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -76,13 +76,13 @@ func (f DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*
 		return nil, err
 	}
 
-	return &pb.GetFlowResponse{
+	return &GetFlowResponse{
 		Id:   request.Id,
 		Body: r.Body,
 	}, nil
 }
 
-func (f DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowRequest) (*pb.UpdateFlowResponse, error) {
+func (f DefaultFlowServer) Update(_ context.Context, request *UpdateFlowRequest) (*UpdateFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -98,12 +98,12 @@ func (f DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowReque
 		return nil, err
 	}
 
-	return &pb.UpdateFlowResponse{
+	return &UpdateFlowResponse{
 		Id: id.String(),
 	}, nil
 }
 
-func (f DefaultFlowServer) Delete(_ context.Context, request *pb.DeleteFlowRequest) (*pb.DeleteFlowResponse, error) {
+func (f DefaultFlowServer) Delete(_ context.Context, request *DeleteFlowRequest) (*DeleteFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (f DefaultFlowServer) Delete(_ context.Context, request *pb.DeleteFlowReque
 		return nil, err
 	}
 
-	return &pb.DeleteFlowResponse{
+	return &DeleteFlowResponse{
 		Id: id.String(),
 	}, nil
 }

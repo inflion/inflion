@@ -1,8 +1,18 @@
+//go:generate protoc -I ../../proto/inflion/inflionserver/job/v1 ../../proto/inflion/inflionserver/job/v1/job.proto -I ../../proto --go_out=plugins=grpc:$GOPATH/src
+// Copyright 2020 The Inflion Authors.
+//
+// Use of this software is governed by the Business Source License
+// included in the file licenses/BSL.txt.
+//
+// As of the Change Date specified in that file, in accordance with
+// the Business Source License, use of this software will be governed
+// by the Apache License, Version 2.0, included in the file
+// licenses/APL.txt.
+
 package job
 
 import (
 	"context"
-	spb "github.com/inflion/inflion/inflionserver/inflionserverpb"
 	cpb "github.com/inflion/inflion/jobserver/jobserverpb"
 	"google.golang.org/grpc"
 	"log"
@@ -37,7 +47,7 @@ func (c *grpcConnection) close() error {
 	return c.conn.Close()
 }
 
-func (j JobServer) List(ctx context.Context, request *spb.ListJobsRequest) (*spb.ListJobsResponse, error) {
+func (j JobServer) List(ctx context.Context, request *ListJobsRequest) (*ListJobsResponse, error) {
 	c := grpcConnection{
 		endpoint: j.endpoint,
 	}
@@ -56,10 +66,10 @@ func (j JobServer) List(ctx context.Context, request *spb.ListJobsRequest) (*spb
 		return nil, err
 	}
 
-	resp := &spb.ListJobsResponse{}
+	resp := &ListJobsResponse{}
 
 	for _, j := range r.Jobs {
-		resp.Jobs = append(resp.Jobs, &spb.Job{
+		resp.Jobs = append(resp.Jobs, &Job{
 			Id:       j.Id,
 			Project:  j.Project,
 			FlowId:   j.FlowId,
@@ -70,7 +80,7 @@ func (j JobServer) List(ctx context.Context, request *spb.ListJobsRequest) (*spb
 	return resp, nil
 }
 
-func (j JobServer) Create(ctx context.Context, request *spb.CreateJobRequest) (*spb.CreateJobResponse, error) {
+func (j JobServer) Create(ctx context.Context, request *CreateJobRequest) (*CreateJobResponse, error) {
 	log.Println("job create")
 	c := grpcConnection{
 		endpoint: j.endpoint,
@@ -93,12 +103,12 @@ func (j JobServer) Create(ctx context.Context, request *spb.CreateJobRequest) (*
 		return nil, err
 	}
 
-	return &spb.CreateJobResponse{
+	return &CreateJobResponse{
 		Id: "created",
 	}, nil
 }
 
-func (j JobServer) Remove(ctx context.Context, request *spb.RemoveJobRequest) (*spb.RemoveJobResponse, error) {
+func (j JobServer) Remove(ctx context.Context, request *RemoveJobRequest) (*RemoveJobResponse, error) {
 	log.Println("remove job")
 	c := grpcConnection{
 		endpoint: j.endpoint,
@@ -119,7 +129,7 @@ func (j JobServer) Remove(ctx context.Context, request *spb.RemoveJobRequest) (*
 		return nil, err
 	}
 
-	return &spb.RemoveJobResponse{
+	return &RemoveJobResponse{
 		Id: r.Id,
 	}, nil
 }

@@ -1,3 +1,4 @@
+//go:generate protoc -I ../../proto/inflion/inflionserver/rule/v1 ../../proto/inflion/inflionserver/rule/v1/rule.proto -I ../../proto --go_out=plugins=grpc:$GOPATH/src
 // Copyright 2020 The Inflion Authors.
 //
 // Use of this software is governed by the Business Source License
@@ -13,7 +14,6 @@ package rule
 import (
 	"context"
 	"github.com/google/uuid"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
 	"github.com/inflion/inflion/internal/ops/rule/rulestore"
 	"log"
 )
@@ -22,7 +22,7 @@ type DefaultRuleServer struct {
 	Store rulestore.Store
 }
 
-func (f DefaultRuleServer) Create(ctx context.Context, request *pb.CreateRuleRequest) (*pb.CreateRuleResponse, error) {
+func (f DefaultRuleServer) Create(ctx context.Context, request *CreateRuleRequest) (*CreateRuleResponse, error) {
 	id, err := f.Store.Create(rulestore.RuleJson{
 		Body: []byte(request.Body),
 	})
@@ -30,12 +30,12 @@ func (f DefaultRuleServer) Create(ctx context.Context, request *pb.CreateRuleReq
 		return nil, err
 	}
 
-	return &pb.CreateRuleResponse{
+	return &CreateRuleResponse{
 		Id: id.String(),
 	}, nil
 }
 
-func (f DefaultRuleServer) Get(ctx context.Context, request *pb.GetRuleRequest) (*pb.GetRuleResponse, error) {
+func (f DefaultRuleServer) Get(ctx context.Context, request *GetRuleRequest) (*GetRuleResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -49,13 +49,13 @@ func (f DefaultRuleServer) Get(ctx context.Context, request *pb.GetRuleRequest) 
 		return nil, err
 	}
 
-	return &pb.GetRuleResponse{
+	return &GetRuleResponse{
 		Id:   request.Id,
 		Body: string(ruleJson.Body),
 	}, nil
 }
 
-func (f DefaultRuleServer) Update(ctx context.Context, request *pb.UpdateRuleRequest) (*pb.UpdateRuleResponse, error) {
+func (f DefaultRuleServer) Update(ctx context.Context, request *UpdateRuleRequest) (*UpdateRuleResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -70,12 +70,12 @@ func (f DefaultRuleServer) Update(ctx context.Context, request *pb.UpdateRuleReq
 		return nil, err
 	}
 
-	return &pb.UpdateRuleResponse{
+	return &UpdateRuleResponse{
 		Id: id.String(),
 	}, nil
 }
 
-func (f DefaultRuleServer) Delete(ctx context.Context, request *pb.DeleteRuleRequest) (*pb.DeleteRuleResponse, error) {
+func (f DefaultRuleServer) Delete(ctx context.Context, request *DeleteRuleRequest) (*DeleteRuleResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (f DefaultRuleServer) Delete(ctx context.Context, request *pb.DeleteRuleReq
 		return nil, err
 	}
 
-	return &pb.DeleteRuleResponse{
+	return &DeleteRuleResponse{
 		Id: id.String(),
 	}, nil
 }

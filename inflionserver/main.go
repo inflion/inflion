@@ -1,10 +1,16 @@
-//go:generate protoc -I inflionserverpb/ inflionserverpb/inflion.proto --go_out=plugins=grpc:inflionserverpb
-
+// Copyright 2020 The Inflion Authors.
+//
+// Use of this software is governed by the Business Source License
+// included in the file licenses/BSL.txt.
+//
+// As of the Change Date specified in that file, in accordance with
+// the Business Source License, use of this software will be governed
+// by the Apache License, Version 2.0, included in the file
+// licenses/APL.txt.
 package main
 
 import (
 	"github.com/inflion/inflion/inflionserver/flow"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
 	"github.com/inflion/inflion/inflionserver/job"
 	"github.com/inflion/inflion/inflionserver/rule"
 	"github.com/inflion/inflion/internal/ops/flow/store"
@@ -24,9 +30,9 @@ func main() {
 
 	s := grpc.NewServer()
 
-	pb.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
-	pb.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
-	pb.RegisterJobInfoServer(s, job.NewJobServer())
+	flow.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
+	rule.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
+	job.RegisterJobInfoServer(s, job.NewJobServer())
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)
