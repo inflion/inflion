@@ -5,7 +5,15 @@ package inflionserverpb;
 // for grpc-gateway
 import "google/api/annotations.proto";
 
-service Flow {
+service FlowInfo {
+  rpc List (ListFlowRequest) returns (ListFlowResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/flows"
+      body: "*"
+    };
+  }
+
   rpc Run (RunFlowRequest) returns (RunFlowResponse)
   {
     option (google.api.http) = {
@@ -45,6 +53,20 @@ service Flow {
       body: "*"
     };
   }
+}
+
+message Flow {
+  string project = 1;
+  string id = 2;
+  string body = 3;
+}
+
+message ListFlowRequest {
+  string project = 1;
+}
+
+message ListFlowResponse {
+  repeated Flow flows = 1;
 }
 
 message RunFlowRequest {
@@ -134,7 +156,8 @@ service Rule {
 }
 
 message CreateRuleRequest {
-  string body = 1;
+  string project = 1;
+  string body = 2;
 }
 
 message CreateRuleResponse {
@@ -142,7 +165,8 @@ message CreateRuleResponse {
 }
 
 message GetRuleRequest {
-  string id = 1;
+  string project = 1;
+  string id = 2;
 }
 
 message GetRuleResponse {
@@ -151,8 +175,9 @@ message GetRuleResponse {
 }
 
 message UpdateRuleRequest {
-  string id = 1;
-  string body = 2;
+  string project = 1;
+  string id = 2;
+  string body = 3;
 }
 
 message UpdateRuleResponse {
@@ -160,7 +185,8 @@ message UpdateRuleResponse {
 }
 
 message DeleteRuleRequest {
-  string id = 1;
+  string project = 1;
+  string id = 2;
 }
 
 message DeleteRuleResponse {
@@ -226,4 +252,21 @@ message RemoveJobRequest {
 
 message RemoveJobResponse {
   int32 id = 1;
+}
+
+service Event {
+  rpc Put (PutEventRequest) returns (PutEventResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/events"
+      body: "*"
+    };
+  }
+}
+
+message PutEventRequest {
+  string event = 1;
+}
+
+message PutEventResponse {
 }

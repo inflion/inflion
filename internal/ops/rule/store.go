@@ -8,27 +8,20 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package jsonv1
+package rule
 
 import (
-	"io/ioutil"
-	"testing"
+	"github.com/google/uuid"
 )
 
-func TestUnmarshalV1(t *testing.T) {
-	jsonForTest := "v1.json"
+type Store interface {
+	GetRules(project string) ([]Rule, error)
+	Create(rule RuleJson) (uuid.UUID, error)
+	Get(rule RuleJson) (RuleJson, error)
+	Update(rule RuleJson) error
+	Delete(rule RuleJson) error
+}
 
-	bytes, err := ioutil.ReadFile(jsonForTest)
-	if err != nil {
-		t.Error(err)
-	}
-
-	rule, err := Unmarshal(bytes)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if rule.Conditions.Conditions[0].TargetAttr != "test" {
-		t.Error("probably unmarshal failed")
-	}
+func NewRuleStore() Store {
+	return EtcdStore{}
 }

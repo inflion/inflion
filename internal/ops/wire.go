@@ -5,9 +5,11 @@ package ops
 
 import (
 	"github.com/google/wire"
+	"github.com/inflion/inflion/internal/ops/rule"
 	"github.com/inflion/inflion/internal/ops/syncer"
-	"github.com/inflion/inflion/internal/store"
+	flowstore "github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/timescale"
+	"github.com/inflion/inflion/internal/store"
 	"github.com/inflion/inflion/internal/ops/broker"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/producer"
@@ -27,7 +29,12 @@ func Initialize() (Ops, error) {
 		),
 		producer.NewProducer,
 		monitor.NewMonitor,
+		broker.NewNsqConsumer,
 		broker.NewBroker,
+		broker.NewEventProcessor,
+		flowstore.NewFlowStore,
+		rule.NewEventMatcher,
+		rule.NewRuleStore,
 		syncer.NewSyncer,
 		newOps,
 	)

@@ -22,8 +22,27 @@ type EtcdStore struct {
 	client *clientv3.Client
 }
 
-func (e EtcdStore) List(ctx context.Context) ([]Job, error) {
-	resp, err := e.connect().Get(ctx, "/jobs", clientv3.WithPrefix())
+func (e EtcdStore) listProjects(ctx context.Context) ([]string, error) {
+	m := map[string]bool{}
+	var projects []string
+
+	resp, err := e.connect().Get(ctx, "/", clientv3.WithPrefix(), clientv3.WithKeysOnly())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range resp.Kvs {
+		m[strings.Split(string(v.Key), "/")[0]] = true
+	}
+	for k, _ := range m {
+		projects = append(projects, k)
+	}
+
+	return projects, nil
+}
+
+func (e EtcdStore) list(ctx context.Context, project string) ([]Job, error) {
+	resp, err := e.connect().Get(ctx, "/"+project+"/jobs", clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +88,25 @@ func (e EtcdStore) List(ctx context.Context) ([]Job, error) {
 	return jobs, nil
 }
 
+func (e EtcdStore) List(ctx context.Context) ([]Job, error) {
+	projects, err := e.listProjects(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var merged []Job
+	for _, p := range projects {
+		jobs, err := e.list(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		for _, j := range jobs {
+			merged = append(merged, j)
+		}
+	}
+	return merged, nil
+}
+
 func (e EtcdStore) Create(ctx context.Context, job Job) error {
 	ops := []clientv3.Op{
 		clientv3.OpPut(e.scheduleKey(job), job.Schedule),
@@ -100,7 +138,7 @@ func (e EtcdStore) Remove(ctx context.Context, job Job) error {
 }
 
 func (e EtcdStore) key(job Job) string {
-	return fmt.Sprintf("/jobs/%s/%d", job.Project, job.Id)
+	return fmt.Sprintf("/%s/jobs/%d", job.Project, job.Id)
 }
 
 func (e EtcdStore) scheduleKey(job Job) string {

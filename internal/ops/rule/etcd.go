@@ -8,7 +8,7 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rulestore
+package rule
 
 import (
 	"context"
@@ -16,8 +16,6 @@ import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/google/uuid"
-	"github.com/inflion/inflion/internal/ops/rule"
-	"github.com/inflion/inflion/internal/ops/rule/jsonv1"
 	"log"
 	"os"
 	"strings"
@@ -25,15 +23,15 @@ import (
 )
 
 type RuleJson struct {
-	Id        uuid.UUID
-	ProjectId int64
-	Body      json.RawMessage
+	Id      uuid.UUID
+	Project string
+	Body    json.RawMessage
 }
 
-func (r RuleJson) Unmarshal() (rule.Rule, error) {
-	j, err := jsonv1.Unmarshal(r.Body)
+func (r RuleJson) Unmarshal() (Rule, error) {
+	j, err := Unmarshal(r.Body)
 	if err != nil {
-		return rule.Rule{}, err
+		return Rule{}, err
 	}
 	return j, nil
 }
@@ -43,7 +41,7 @@ type EtcdStore struct {
 }
 
 func (e EtcdStore) createKey(rule RuleJson) string {
-	return fmt.Sprintf("/ops/%d/rules/%s", rule.ProjectId, rule.Id.String())
+	return fmt.Sprintf("/%s/rules/%s", rule.Project, rule.Id.String())
 }
 
 func (e EtcdStore) Create(rule RuleJson) (uuid.UUID, error) {
@@ -51,6 +49,8 @@ func (e EtcdStore) Create(rule RuleJson) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.UUID{}, err
 	}
+
+	rule.Id = id
 
 	_, err = e.connect().Put(context.Background(), e.createKey(rule), string(rule.Body))
 	if err != nil {
@@ -90,18 +90,18 @@ func (e EtcdStore) Delete(rule RuleJson) error {
 	return nil
 }
 
-func (e EtcdStore) GetRules(projectId int64) ([]rule.Rule, error) {
-	key := fmt.Sprintf("/ops/%d/rules", projectId)
-	v, err := e.client.Get(context.Background(), key, clientv3.WithPrefix())
+func (e EtcdStore) GetRules(project string) ([]Rule, error) {
+	key := fmt.Sprintf("/%s/rules", project)
+	v, err := e.connect().Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	var rules []rule.Rule
+	var rules []Rule
 
 	for _, ruleJson := range v.Kvs {
-		r, err := jsonv1.Unmarshal(ruleJson.Value)
+		r, err := Unmarshal(ruleJson.Value)
 		if err != nil {
 			log.Println(err)
 			continue

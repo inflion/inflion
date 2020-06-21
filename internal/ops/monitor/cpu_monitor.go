@@ -36,10 +36,10 @@ func (m *cpuMonitor) run(ctx context.Context) {
 		if average.Avg.(float64) > threshold {
 			m.monitor.ProduceEvent(
 				MonitoringEvent{
-					Type:      CPUUtilization.String(),
-					ProjectId: i.ProjectID,
-					Message:   "average cpu utilization is high",
-					Values: map[string]interface{}{
+					Project: "TODO_FIX_ME", // FIXME get project from somewhere
+					Body: map[string]interface{}{
+						"Type":       CPUUtilization.String(),
+						"Message":    "average cpu utilization is high",
 						"InstanceId": i.InstanceID,
 						"Value":      average.Avg.(float64),
 					},

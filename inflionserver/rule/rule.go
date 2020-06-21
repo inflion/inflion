@@ -14,17 +14,18 @@ import (
 	"context"
 	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
-	"github.com/inflion/inflion/internal/ops/rule/rulestore"
+	"github.com/inflion/inflion/internal/ops/rule"
 	"log"
 )
 
 type DefaultRuleServer struct {
-	Store rulestore.Store
+	Store rule.Store
 }
 
 func (f DefaultRuleServer) Create(ctx context.Context, request *pb.CreateRuleRequest) (*pb.CreateRuleResponse, error) {
-	id, err := f.Store.Create(rulestore.RuleJson{
-		Body: []byte(request.Body),
+	id, err := f.Store.Create(rule.RuleJson{
+		Project: request.Project,
+		Body:    []byte(request.Body),
 	})
 	if err != nil {
 		return nil, err
@@ -41,9 +42,9 @@ func (f DefaultRuleServer) Get(ctx context.Context, request *pb.GetRuleRequest) 
 		return nil, err
 	}
 
-	ruleJson, err := f.Store.Get(rulestore.RuleJson{
-		Id:        id,
-		ProjectId: 0, // TODO project id
+	ruleJson, err := f.Store.Get(rule.RuleJson{
+		Project: request.Project,
+		Id:      id,
 	})
 	if err != nil {
 		return nil, err
@@ -61,9 +62,10 @@ func (f DefaultRuleServer) Update(ctx context.Context, request *pb.UpdateRuleReq
 		return nil, err
 	}
 
-	err = f.Store.Update(rulestore.RuleJson{
-		Id:   id,
-		Body: []byte(request.Body),
+	err = f.Store.Update(rule.RuleJson{
+		Id:      id,
+		Project: request.Project,
+		Body:    []byte(request.Body),
 	})
 	if err != nil {
 		log.Println(err)
@@ -81,7 +83,7 @@ func (f DefaultRuleServer) Delete(ctx context.Context, request *pb.DeleteRuleReq
 		return nil, err
 	}
 
-	err = f.Store.Delete(rulestore.RuleJson{
+	err = f.Store.Delete(rule.RuleJson{
 		Id: id,
 	})
 	if err != nil {

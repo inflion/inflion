@@ -11,7 +11,6 @@
 package producer
 
 import (
-	"encoding/json"
 	"github.com/nsqio/go-nsq"
 	"log"
 )
@@ -34,14 +33,13 @@ func NewProducer() *Producer {
 	}
 }
 
-func (p *Producer) Produce(event interface{}) (err error) {
-	bytes, err := json.Marshal(event)
-	err = p.producer.Publish(topicName, bytes)
+func (p *Producer) Produce(event []byte) error {
+	err := p.producer.Publish(topicName, event)
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
-	return
+	return nil
 }
 
 func (p *Producer) Stop() {

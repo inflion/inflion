@@ -12,32 +12,36 @@ package rule
 
 import (
 	"github.com/inflion/inflion/internal/ops/monitor"
-	//store2 "github.com/inflion/inflion/internal/ops/rule/store"
+	"log"
 )
 
 type EventMatcher interface {
 	GetRulesMatchesTo(event monitor.MonitoringEvent) ([]Rule, error)
 }
 
-type querierEventMatcher struct {
-	//store store2.Store
+func NewEventMatcher(store Store) EventMatcher {
+	return &storeEventMatcher{store: store}
 }
 
-func (n *querierEventMatcher) GetRulesMatchesTo(event monitor.MonitoringEvent) ([]Rule, error) {
+type storeEventMatcher struct {
+	store Store
+}
+
+func (s *storeEventMatcher) GetRulesMatchesTo(event monitor.MonitoringEvent) ([]Rule, error) {
 	var matchedRules []Rule
 
-	// TODO use interface instead of store
+	rules, err := s.store.GetRules(event.Project)
+	if err != nil {
+		return matchedRules, err
+	}
 
-	//rules, err := n.store.GetRules(event.ProjectId)
-	//if err != nil {
-	//	return matchedRules, err
-	//}
+	log.Printf("rules: %+v", rules)
 
-	//for _, rule := range rules {
-		//if rule.Conditions.match(event) {
-		//	matchedRules = append(matchedRules, rule)
-		//}
-	//}
+	for _, rule := range rules {
+		if rule.Conditions.match(event) {
+			matchedRules = append(matchedRules, rule)
+		}
+	}
 
 	return matchedRules, nil
 }

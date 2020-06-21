@@ -46,13 +46,13 @@ func (s *sgMonitor) run(ctx context.Context) {
 		for _, sg := range securityGroups {
 			if sg.HasOpenPorts() {
 				s.monitor.ProduceEvent(MonitoringEvent{
-					Type:      OpenPortDetected.String(),
-					ProjectId: account.ProjectID,
-					Message:   "open port found",
-					Values: map[string]interface{}{
+					Project: "TODO_FIX_ME", // FIXME get project from somewhere
+					Body: map[string]interface{}{
+						"Type":              OpenPortDetected.String(),
+						"Message":           "open port found",
 						"SecurityGroupId":   sg.Id,
 						"SecurityGroupName": sg.Name,
-						//"OpenPorts":         sg.GetOpenPorts().ToString(),
+						//"OpenPorts":       sg.GetOpenPorts().ToString(),
 						"OpenPorts": "22",
 					},
 				})

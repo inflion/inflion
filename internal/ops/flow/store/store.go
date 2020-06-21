@@ -6,9 +6,9 @@ import (
 )
 
 type Flow struct {
-	ProjectId int64
-	Id        uuid.UUID
-	Body      string
+	Project string
+	Id      uuid.UUID
+	Body    string
 }
 
 type Project = string
@@ -53,6 +53,7 @@ type FlowDeleteResponse struct {
 }
 
 type Store interface {
+	List(project string) ([]Flow, error)
 	Create(request FlowCreateRequest) (FlowCreateResponse, error)
 	Get(request FlowGetRequest) (FlowGetResponse, error)
 	Update(request FlowUpdateRequest) error

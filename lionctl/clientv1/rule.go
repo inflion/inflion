@@ -29,11 +29,12 @@ type RuleClient interface {
 }
 
 type RuleClientPb struct {
+	project  string
 	endpoint string
 }
 
-func NewRuleClient(endpoint string) RuleClient {
-	return RuleClientPb{endpoint: endpoint}
+func NewRuleClient(project string, endpoint string) RuleClient {
+	return RuleClientPb{project: project, endpoint: endpoint}
 }
 
 func (f RuleClientPb) Create(body string) (Rule, error) {
@@ -46,7 +47,8 @@ func (f RuleClientPb) Create(body string) (Rule, error) {
 
 	client := pb.NewRuleClient(c.conn)
 	res, err := client.Create(context.Background(), &pb.CreateRuleRequest{
-		Body: body,
+		Project: f.project,
+		Body:    body,
 	})
 	if err != nil {
 		log.Print(err)
@@ -68,7 +70,8 @@ func (f RuleClientPb) Get(id string) (Rule, error) {
 
 	client := pb.NewRuleClient(c.conn)
 	res, err := client.Get(context.Background(), &pb.GetRuleRequest{
-		Id: id,
+		Project: f.project,
+		Id:      id,
 	})
 	if err != nil {
 		log.Print(err)
@@ -90,8 +93,9 @@ func (f RuleClientPb) Update(id string, body string) (string, error) {
 
 	client := pb.NewRuleClient(c.conn)
 	_, err = client.Update(context.Background(), &pb.UpdateRuleRequest{
-		Id:   id,
-		Body: body,
+		Project: f.project,
+		Id:      id,
+		Body:    body,
 	})
 	if err != nil {
 		return id, err
@@ -109,7 +113,8 @@ func (f RuleClientPb) Remove(id string) (string, error) {
 
 	client := pb.NewRuleClient(c.conn)
 	res, err := client.Delete(context.Background(), &pb.DeleteRuleRequest{
-		Id: id,
+		Project: f.project,
+		Id:      id,
 	})
 	if err != nil {
 		log.Print(err)

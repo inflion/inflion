@@ -8,17 +8,17 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rulestore
+package event
 
 import (
-	"github.com/google/uuid"
-	"github.com/inflion/inflion/internal/ops/rule"
+	"context"
+	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	"github.com/inflion/inflion/internal/ops/producer"
 )
 
-type Store interface {
-	GetRules(projectId int64) ([]rule.Rule, error)
-	Create(rule RuleJson) (uuid.UUID, error)
-	Get(rule RuleJson) (RuleJson, error)
-	Update(rule RuleJson) error
-	Delete(rule RuleJson) error
+type DefaultEventServer struct {
+}
+
+func (f DefaultEventServer) Put(_ context.Context, request *pb.PutEventRequest) (*pb.PutEventResponse, error) {
+	return &pb.PutEventResponse{}, producer.NewProducer().Produce([]byte(request.Event))
 }
