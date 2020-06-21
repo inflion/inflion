@@ -11,8 +11,34 @@ import (
 	"time"
 )
 
+func NewFlowStore() Store {
+	return EtcdBackedFlowStore{}
+}
+
 type EtcdBackedFlowStore struct {
 	client *clientv3.Client
+}
+
+func (e EtcdBackedFlowStore) List(project string) ([]Flow, error) {
+	var flows []Flow
+	key := e.createKeyPrefix(project)
+	resp, err := e.connect().Get(context.Background(), key, clientv3.WithPrefix())
+	if err != nil {
+		log.Fatal(err)
+		return flows, err
+	}
+
+	log.Printf("%+v", resp.Kvs)
+
+	for _, v := range resp.Kvs {
+		flows = append(flows, Flow{
+			Project: project,
+			Id:      uuid.MustParse(strings.Replace(string(v.Key), e.createKeyPrefix(project), "", 1)),
+			Body:    string(v.Value),
+		})
+	}
+
+	return flows, nil
 }
 
 func (e EtcdBackedFlowStore) Create(request FlowCreateRequest) (FlowCreateResponse, error) {
@@ -63,8 +89,12 @@ func (e EtcdBackedFlowStore) Delete(request FlowDeleteRequest) error {
 	return nil
 }
 
+func (e EtcdBackedFlowStore) createKeyPrefix(project Project) string {
+	return fmt.Sprintf("/%s/flows/", project)
+}
+
 func (e EtcdBackedFlowStore) createKey(project Project, id FlowId) string {
-	return fmt.Sprintf("/%s/flows/%s", project, id.String())
+	return e.createKeyPrefix(project) + id.String()
 }
 
 func (e EtcdBackedFlowStore) connect() *clientv3.Client {

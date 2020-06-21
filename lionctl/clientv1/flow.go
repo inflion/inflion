@@ -28,6 +28,7 @@ type Flowclient interface {
 	Get(id string) (Flow, error)
 	Update(id string, body string) (string, error)
 	Remove(id string) (string, error)
+	List() ([]Flow, error)
 }
 
 type Flowclientpb struct {
@@ -48,7 +49,7 @@ func (f Flowclientpb) Run(id string) (string, error) {
 		return "", err
 	}
 
-	client := pb.NewFlowClient(c.conn)
+	client := pb.NewFlowInfoClient(c.conn)
 	res, err := client.Run(context.Background(), &pb.RunFlowRequest{
 		Project: f.project,
 		Id:      id,
@@ -64,6 +65,34 @@ func (f Flowclientpb) Run(id string) (string, error) {
 	return res.Output, nil
 }
 
+func (f Flowclientpb) List() ([]Flow, error) {
+	var flows []Flow
+	c := grpcConnection{endpoint: f.endpoint}
+	err := c.connect()
+	if err != nil {
+		log.Println(err)
+		return flows, err
+	}
+
+	client := pb.NewFlowInfoClient(c.conn)
+	res, err := client.List(context.Background(), &pb.ListFlowRequest{
+		Project: f.project,
+	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for _, flow := range res.Flows {
+		flows = append(flows, Flow{
+			Id:   flow.Id,
+			Body: flow.Body,
+		})
+	}
+
+	return flows, nil
+}
+
 func (f Flowclientpb) Create(body string) (Flow, error) {
 	c := grpcConnection{endpoint: f.endpoint}
 	err := c.connect()
@@ -72,7 +101,7 @@ func (f Flowclientpb) Create(body string) (Flow, error) {
 		return Flow{}, err
 	}
 
-	client := pb.NewFlowClient(c.conn)
+	client := pb.NewFlowInfoClient(c.conn)
 	res, err := client.Create(context.Background(), &pb.CreateFlowRequest{
 		Project: f.project,
 		Body:    body,
@@ -95,7 +124,7 @@ func (f Flowclientpb) Get(id string) (Flow, error) {
 		log.Println(err)
 	}
 
-	client := pb.NewFlowClient(c.conn)
+	client := pb.NewFlowInfoClient(c.conn)
 	res, err := client.Get(context.Background(), &pb.GetFlowRequest{
 		Project: f.project,
 		Id:      id,
@@ -118,7 +147,7 @@ func (f Flowclientpb) Update(id string, body string) (string, error) {
 		log.Println(err)
 	}
 
-	client := pb.NewFlowClient(c.conn)
+	client := pb.NewFlowInfoClient(c.conn)
 	_, err = client.Update(context.Background(), &pb.UpdateFlowRequest{
 		Project: f.project,
 		Id:      id,
@@ -138,7 +167,7 @@ func (f Flowclientpb) Remove(id string) (string, error) {
 		return id, err
 	}
 
-	client := pb.NewFlowClient(c.conn)
+	client := pb.NewFlowInfoClient(c.conn)
 	res, err := client.Delete(context.Background(), &pb.DeleteFlowRequest{
 		Project: f.project,
 		Id:      id,

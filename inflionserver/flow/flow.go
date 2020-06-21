@@ -23,6 +23,27 @@ type DefaultFlowServer struct {
 	Store store.Store
 }
 
+func (f DefaultFlowServer) List(_ context.Context, request *pb.ListFlowRequest) (*pb.ListFlowResponse, error) {
+	result := &pb.ListFlowResponse{
+		Flows: []*pb.Flow{},
+	}
+
+	flows, err := f.Store.List(request.Project)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, flow := range flows {
+		result.Flows = append(result.Flows, &pb.Flow{
+			Project: flow.Project,
+			Id:      flow.Id.String(),
+			Body:    flow.Body,
+		})
+	}
+
+	return result, nil
+}
+
 func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*pb.RunFlowResponse, error) {
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {

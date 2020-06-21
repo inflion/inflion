@@ -12,6 +12,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/inflion/inflion/internal/ops/producer"
 	"github.com/inflion/inflion/internal/store"
 	"github.com/inflion/inflion/internal/timescale"
@@ -60,8 +61,12 @@ func (m *Monitor) Run() {
 	log.Println("Monitor finished")
 }
 
-func (m *Monitor) ProduceEvent(event interface{}) {
-	err := m.producer.Produce(event)
+func (m *Monitor) ProduceEvent(event MonitoringEvent) {
+	bytes, err := json.Marshal(event)
+	if err != nil {
+		log.Println(err)
+	}
+	err = m.producer.Produce(bytes)
 	if err != nil {
 		log.Println(err)
 	}

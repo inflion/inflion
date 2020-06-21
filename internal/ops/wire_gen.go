@@ -6,9 +6,11 @@
 package ops
 
 import (
-	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/broker"
+	store2 "github.com/inflion/inflion/internal/ops/flow/store"
+	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/producer"
+	"github.com/inflion/inflion/internal/ops/rule"
 	"github.com/inflion/inflion/internal/ops/syncer"
 	"github.com/inflion/inflion/internal/store"
 	"github.com/inflion/inflion/internal/timescale"
@@ -29,8 +31,13 @@ func Initialize() (Ops, error) {
 	timescaleQueries := timescale.New(timescaleDBTX)
 	producerProducer := producer.NewProducer()
 	monitorMonitor := monitor.NewMonitor(queries, timescaleQueries, producerProducer)
-	broker := broker.NewBroker(queries)
+	consumer := broker.NewNsqConsumer()
+	storeStore := store2.NewFlowStore()
+	ruleStore := rule.NewRuleStore()
+	eventMatcher := rule.NewEventMatcher(ruleStore)
+	eventProcessor := broker.NewEventProcessor(storeStore, eventMatcher)
+	brokerBroker := broker.NewBroker(consumer, eventProcessor)
 	syncerSyncer := syncer.NewSyncer(queries)
-	ops := newOps(monitorMonitor, broker, syncerSyncer)
+	ops := newOps(monitorMonitor, brokerBroker, syncerSyncer)
 	return ops, nil
 }

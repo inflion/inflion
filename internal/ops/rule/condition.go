@@ -10,7 +10,10 @@
 
 package rule
 
-import "github.com/inflion/inflion/internal/ops/monitor"
+import (
+	"github.com/inflion/inflion/internal/ops/monitor"
+	"log"
+)
 
 type condMatcher interface {
 	match(value interface{}) bool
@@ -24,8 +27,18 @@ type Condition struct {
 }
 
 func (m *Condition) match(event monitor.MonitoringEvent) bool {
-	if value, ok := event.GetValue(m.TargetAttr); ok {
-		return m.Matcher.match(value)
+	if m.MatchType == "contains" {
+		m.Matcher = &ContainsMatcher{Value: m.MatchValue}
+	} else if m.MatchType == "exact" {
+		m.Matcher = &exactMatcher{value: m.MatchValue}
+	} else {
+		log.Printf("no such match type: %s", m.MatchType)
+		return false
 	}
+
+	if eventValue, ok := event.GetValue(m.TargetAttr); ok {
+		return m.Matcher.match(eventValue)
+	}
+
 	return false
 }

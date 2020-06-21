@@ -3,12 +3,13 @@
 package main
 
 import (
+	"github.com/inflion/inflion/inflionserver/event"
 	"github.com/inflion/inflion/inflionserver/flow"
 	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
 	"github.com/inflion/inflion/inflionserver/job"
 	"github.com/inflion/inflion/inflionserver/rule"
 	"github.com/inflion/inflion/internal/ops/flow/store"
-	"github.com/inflion/inflion/internal/ops/rule/rulestore"
+	rule2 "github.com/inflion/inflion/internal/ops/rule"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -24,9 +25,10 @@ func main() {
 
 	s := grpc.NewServer()
 
-	pb.RegisterFlowServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
-	pb.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rulestore.EtcdStore{}})
+	pb.RegisterFlowInfoServer(s, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
+	pb.RegisterRuleServer(s, rule.DefaultRuleServer{Store: rule2.EtcdStore{}})
 	pb.RegisterJobInfoServer(s, job.NewJobServer())
+	pb.RegisterEventServer(s, event.DefaultEventServer{})
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatal(err)

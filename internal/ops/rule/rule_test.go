@@ -23,4 +23,3 @@ func (m MockMatcherRuleStore) GetRules() ([]Rule, error) {
 		}}},
 	}}, nil
 }
-

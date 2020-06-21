@@ -32,6 +32,7 @@ func flowCommand() *cobra.Command {
 		Short: "flow related commands",
 	}
 
+	cmd.AddCommand(flowListCommand())
 	cmd.AddCommand(flowRunCommand())
 	cmd.AddCommand(flowCreateCommand())
 	cmd.AddCommand(flowGetCommand())
@@ -47,6 +48,28 @@ func project() string {
 
 func endpoint() string {
 	return viper.GetString("endpoint")
+}
+
+func flowListCommand() *cobra.Command {
+	cmd := cobra.Command{
+		Use:   "list",
+		Short: "list flows",
+		Run: func(cmd *cobra.Command, args []string) {
+			c := clientv1.NewFlowClient(project(), endpoint())
+			flows, err := c.List()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, v := range flows {
+				fmt.Println(v.Id)
+			}
+
+			os.Exit(0)
+		},
+	}
+
+	return &cmd
 }
 
 func flowRunCommand() *cobra.Command {

@@ -159,13 +159,13 @@ type SecurityGroupSlackAttachment struct {
 }
 
 func (s SecurityGroupSlackAttachment) attachment(event monitor.MonitoringEvent) slack.Attachment {
-	sgId := event.Values["SecurityGroupId"]
+	sgId := event.Body["SecurityGroupId"]
 
 	a := slack.Attachment{}
-	a.AddField(slack.Field{Title: "Message", Value: event.Message})
+	a.AddField(slack.Field{Title: "Message", Value: event.Body["Message"].(string)})
 	a.AddField(slack.Field{Title: "SecurityGroup", Value: sgId.(string)})
-	log.Println(event.Values["OpenPorts"])
-	if v, ok := event.Values["OpenPorts"].(string); ok {
+	log.Println(event.Body["OpenPorts"])
+	if v, ok := event.Body["OpenPorts"].(string); ok {
 		a.AddField(slack.Field{Title: "Open Port", Value: v})
 	}
 	a.AddAction(slack.Action{Type: "button", Text: "Close Port", Url: "http://localhost:3000/project/1/action/close", Style: "primary"})
@@ -176,7 +176,7 @@ type CpuUtilizationSlackAttachment struct {
 }
 
 func (c CpuUtilizationSlackAttachment) attachment(event monitor.MonitoringEvent) slack.Attachment {
-	id := event.Values["InstanceId"]
+	id := event.Body["InstanceId"]
 
 	a := slack.Attachment{}
 	a.AddField(slack.Field{Title: "Warning", Value: id.(string)}).AddField(slack.Field{Title: "ExitStatus", Value: "Completed"})
@@ -185,7 +185,7 @@ func (c CpuUtilizationSlackAttachment) attachment(event monitor.MonitoringEvent)
 }
 
 func createSlackAttachment(event monitor.MonitoringEvent) SlackAttachment {
-	if slackAttachment, ok := staticSlackAttachmentRegistry[event.Type]; ok {
+	if slackAttachment, ok := staticSlackAttachmentRegistry[event.Body["Type"].(string)]; ok {
 		return slackAttachment
 	}
 

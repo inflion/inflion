@@ -11,19 +11,16 @@
 package broker
 
 import (
-	"context"
+	"github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/rule"
-	"github.com/inflion/inflion/internal/store"
 	"io/ioutil"
 	"testing"
-	"time"
 )
 
 type mockEventMatcher struct {
 }
-
-func (m mockEventMatcher) getRulesMatchesTo(event monitor.MonitoringEvent) ([]rule.Rule, error) {
+func (m mockEventMatcher) GetRulesMatchesTo(event monitor.MonitoringEvent) ([]rule.Rule, error) {
 	return []rule.Rule{
 		{
 			RuleName: "rule1",
@@ -42,37 +39,30 @@ func (m mockEventMatcher) getRulesMatchesTo(event monitor.MonitoringEvent) ([]ru
 	}, nil
 }
 
-type mockQuerier struct {
-	store.Querier
+type mockStore struct {
+	store.Store
 }
 
-func (m mockQuerier) GetFlowByName(ctx context.Context, arg store.GetFlowByNameParams) ([]store.Flow, error) {
+func (e mockStore) Get(request store.FlowGetRequest) (store.FlowGetResponse, error) {
 	jsonForTest := "../flow/json/sample_flow.json"
 
 	bytes, err := ioutil.ReadFile(jsonForTest)
 	if err != nil {
 		panic(err)
 	}
-	return []store.Flow{
-		{
-			ID:        1,
-			ProjectID: 1,
-			FlowName:  "flow",
-			Body:      bytes,
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-		},
+	return store.FlowGetResponse{
+		Body: string(bytes),
 	}, nil
 }
 
 func TestEventProcessor(t *testing.T) {
-	e := newDefaultEventProcessor(mockQuerier{}, mockEventMatcher{})
+	e := NewEventProcessor(mockStore{}, mockEventMatcher{})
 	err := e.process(
 		monitor.MonitoringEvent{
-			Type:      "mock-event",
-			ProjectId: 1,
-			Message:   "message",
-			Values:    map[string]interface{}{"test": "test"},
+			Type:    "mock-event",
+			Project: "sandbox",
+			Message: "message",
+			Values:  map[string]interface{}{"test": "test"},
 		},
 	)
 	if err != nil {

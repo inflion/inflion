@@ -1,11 +1,21 @@
+// Copyright 2020 The Inflion Authors.
+//
+// Use of this software is governed by the Business Source License
+// included in the file licenses/BSL.txt.
+//
+// As of the Change Date specified in that file, in accordance with
+// the Business Source License, use of this software will be governed
+// by the Apache License, Version 2.0, included in the file
+// licenses/APL.txt.
+
 package broker
 
 import (
-	"context"
+	"github.com/google/uuid"
 	"github.com/inflion/inflion/internal/ops/flow"
+	"github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/rule"
-	"github.com/inflion/inflion/internal/store"
 	"log"
 )
 
@@ -15,50 +25,46 @@ type eventProcessor interface {
 
 type defaultEventProcessor struct {
 	matcher rule.EventMatcher
-	querier store.Querier
+	store   store.Store
 }
 
-func newDefaultEventProcessor(querier store.Querier, matcher rule.EventMatcher) eventProcessor {
+func NewEventProcessor(store store.Store, matcher rule.EventMatcher) eventProcessor {
 	return defaultEventProcessor{
+		store:   store,
 		matcher: matcher,
-		querier: querier,
 	}
 }
 
 func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
-	ctx := context.Background()
-
 	matchedRules, err := d.matcher.GetRulesMatchesTo(event)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	for _, rule := range matchedRules {
+	for _, matchedRule := range matchedRules {
+		flowId, err := uuid.Parse(matchedRule.Target)
+		if err != nil {
+			return err
+		}
 
-		// TODO |############################################|
-		// TODO |    Use flow.store instead of querier.      |
-		// TODO |############################################|
-
-		flows, err := d.querier.GetFlowByName(ctx,
-			store.GetFlowByNameParams{
-				ProjectID: event.ProjectId,
-				FlowName:  rule.Target,
+		r, err := d.store.Get(
+			store.FlowGetRequest{
+				Id:      flowId,
+				Project: event.Project,
 			},
 		)
-
 		if err != nil {
 			log.Println(err)
 			return err
 		}
 
-		for _, f := range flows {
-			f := flow.NewOpsFlow(ByteRecipeReader{body: f.Body})
-			err := f.Run()
-			if err != nil {
-				log.Println(err)
-			}
+		f := flow.NewOpsFlow(ByteRecipeReader{body: []byte(r.Body)})
+		result, err := f.Run(flow.NewExecutionContext())
+		if err != nil {
+			log.Println(err)
 		}
+		log.Printf("flow execution result: %+v", result)
 	}
 
 	return nil

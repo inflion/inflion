@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/inflion/inflion/lionctl/clientv1"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -37,8 +38,13 @@ func ruleCreateCommand() *cobra.Command {
 		Use:   "create",
 		Short: "Create a new rule",
 		Run: func(cmd *cobra.Command, args []string) {
-			c := clientv1.NewRuleClient(endpoint())
-			rule, err := c.Create(body)
+			rulejson, err := ioutil.ReadFile(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			c := clientv1.NewRuleClient(project(), endpoint())
+			rule, err := c.Create(string(rulejson))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -48,8 +54,8 @@ func ruleCreateCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&body, "body", "b", "", "body json of a rule (required)")
-	err := cmd.MarkFlagRequired("body")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "path of a rule file(required)")
+	err := cmd.MarkFlagRequired("file")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +68,7 @@ func ruleGetCommand() *cobra.Command {
 		Use:   "get",
 		Short: "Get a rule",
 		Run: func(cmd *cobra.Command, args []string) {
-			c := clientv1.NewRuleClient(endpoint())
+			c := clientv1.NewRuleClient(project(), endpoint())
 			rule, err := c.Get(id)
 			if err != nil {
 				log.Fatal(err)
@@ -88,7 +94,7 @@ func ruleUpdateCommand() *cobra.Command {
 		Use:   "update",
 		Short: "Update a rule",
 		Run: func(cmd *cobra.Command, args []string) {
-			c := clientv1.NewRuleClient(endpoint())
+			c := clientv1.NewRuleClient(project(), endpoint())
 			id, err := c.Update(id, body)
 			if err != nil {
 				log.Print(err)
@@ -119,7 +125,7 @@ func ruleRemoveCommand() *cobra.Command {
 		Use:   "remove",
 		Short: "Remove a rule",
 		Run: func(cmd *cobra.Command, args []string) {
-			c := clientv1.NewRuleClient(endpoint())
+			c := clientv1.NewRuleClient(project(), endpoint())
 
 			id, err := c.Remove(id)
 			if err != nil {

@@ -22,6 +22,10 @@ type nsqConsumer struct {
 	processor eventProcessor
 }
 
+func NewNsqConsumer() consumer {
+	return &nsqConsumer{}
+}
+
 func (n *nsqConsumer) consume(processor eventProcessor) {
 	n.processor = processor
 	nsqlookupdHost := os.Getenv("NSQLOOKUPD_HOST")

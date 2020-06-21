@@ -55,12 +55,6 @@ func jobListCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("project", "p", "", "project")
-	err := cmd.MarkFlagRequired("project")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &cmd
 }
 
@@ -98,11 +92,6 @@ func jobCreateCommand() *cobra.Command {
 
 	cmd.Flags().StringP("id", "i", "", "an id of a job")
 	err := cmd.MarkFlagRequired("id")
-	if err != nil {
-		log.Fatal(err)
-	}
-	cmd.Flags().StringP("project", "p", "", "project")
-	err = cmd.MarkFlagRequired("project")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -150,11 +139,6 @@ func jobRemoveCommand() *cobra.Command {
 
 	cmd.Flags().StringP("id", "i", "", "an id of a job")
 	err := cmd.MarkFlagRequired("id")
-	if err != nil {
-		log.Fatal(err)
-	}
-	cmd.Flags().StringP("project", "p", "", "project")
-	err = cmd.MarkFlagRequired("project")
 	if err != nil {
 		log.Fatal(err)
 	}

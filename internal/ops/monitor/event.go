@@ -15,37 +15,32 @@ import (
 	"fmt"
 )
 
-const MessageKey = "Message"
-
 type MonitoringEvent struct {
-	Type      string
-	ProjectId int64
-	Message   string
-	Values    map[string]interface{} `json:"values"`
+	Project string                 `json:"project"`
+	Body    map[string]interface{} `json:"body"`
 }
 
 func (e *MonitoringEvent) HasAttribute(key string) bool {
-	if key == MessageKey {
+	if _, ok := e.Body[key]; ok {
 		return true
 	} else {
-		_, ok := e.Values[key]
-		return ok
+		return false
 	}
 }
 
 func (e *MonitoringEvent) GetValue(key string) (interface{}, bool) {
-	if key == MessageKey {
-		return e.Message, true
-	} else {
-		value, ok := e.Values[key]
+	if _, ok := e.Body[key]; ok {
+		value, ok := e.Body[key]
 		return value, ok
+	} else {
+		return nil, false
 	}
 }
 
 func (e *MonitoringEvent) Hash(ignoreKeys []string) string {
 	var buf string
 
-	for k, v := range e.Values {
+	for k, v := range e.Body {
 		for _, ignore := range ignoreKeys {
 			if k == ignore {
 				continue

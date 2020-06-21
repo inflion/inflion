@@ -1,19 +1,40 @@
-// Copyright 2020 The Inflion Authors.
-//
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
-//
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
-
-package jsonv1
+package rule
 
 import (
 	"encoding/json"
-	"github.com/inflion/inflion/internal/ops/rule"
+	"fmt"
 )
+
+type MetadataJson struct {
+	Metadata struct {
+		Format struct {
+			Version int `json:"version"`
+		} `json:"Format"`
+	} `json:"Metadata"`
+}
+
+func Unmarshal(rawJson []byte) (Rule, error) {
+	m := MetadataJson{}
+	err := json.Unmarshal(rawJson, &m)
+	if err != nil {
+		return Rule{}, err
+	}
+
+	if m.Metadata.Format.Version == 1 {
+		v1, err := UnmarshalV1(rawJson)
+		if err != nil {
+			return Rule{}, err
+		}
+
+		return Rule{
+			RuleName:   v1.Body.Name,
+			Target:     v1.Body.Target,
+			Conditions: Conditions{Conditions: v1.mustConvertConditions()},
+		}, nil
+	}
+
+	return Rule{}, fmt.Errorf("json version %d not supported", m.Metadata.Format.Version)
+}
 
 func UnmarshalV1(v1FormattedJson []byte) (*RuleRootJsonV1, error) {
 	v1 := RuleRootJsonV1{}
@@ -39,10 +60,10 @@ type ConditionJsonV1 struct {
 	MatchValue string `json:"match_value"`
 }
 
-func (r RuleRootJsonV1) mustConvertConditions() []rule.Condition {
-	var c []rule.Condition
+func (r RuleRootJsonV1) mustConvertConditions() []Condition {
+	var c []Condition
 	for _, jc := range r.Body.Conditions {
-		c = append(c, rule.Condition{
+		c = append(c, Condition{
 			TargetAttr: jc.TargetAttr,
 			MatchType:  jc.MatchType,
 			MatchValue: jc.MatchValue,
