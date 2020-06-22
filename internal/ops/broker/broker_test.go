@@ -29,10 +29,8 @@ type mockConsumer struct {
 
 func (m mockConsumer) consume(processor eventProcessor) {
 	_ = processor.process(monitor.MonitoringEvent{
-		Type:    "mock-event",
 		Project: "sandbox",
-		Message: "message",
-		Values:  map[string]interface{}{"test": "test"},
+		Body:    map[string]interface{}{"type": "test", "message": "message"},
 	})
 }
 
