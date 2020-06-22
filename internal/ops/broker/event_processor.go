@@ -48,7 +48,7 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 			return err
 		}
 
-		r, err := d.store.Get(
+		resp, err := d.store.Get(
 			store.FlowGetRequest{
 				Id:      flowId,
 				Project: event.Project,
@@ -59,7 +59,11 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 			return err
 		}
 
-		f := flow.NewOpsFlow(ByteRecipeReader{body: []byte(r.Body)})
+		f := flow.NewOpsFlow(ByteRecipeReader{body: []byte(resp.Body)})
+		ec := flow.NewExecutionContext()
+		ec.AddFields("event", flow.ExecutionFields{
+			Values: event.Body,
+		})
 		result, err := f.Run(flow.NewExecutionContext())
 		if err != nil {
 			log.Println(err)
