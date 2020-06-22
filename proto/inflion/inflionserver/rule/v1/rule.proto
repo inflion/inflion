@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package inflion.inflionserver.rule.v1;
+
+import "google/api/annotations.proto";
+option go_package = "/rulepb";
+
+service Rule {
+  rpc Create (CreateRuleRequest) returns (CreateRuleResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/rules"
+      body: "*"
+    };
+  }
+
+  rpc Get (GetRuleRequest) returns (GetRuleResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/rule"
+    };
+  }
+
+  rpc Update (UpdateRuleRequest) returns (UpdateRuleResponse)
+  {
+    option (google.api.http) = {
+      put: "/v1/rule"
+      body: "*"
+    };
+  }
+
+  rpc Delete (DeleteRuleRequest) returns (DeleteRuleResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/rule"
+    };
+  }
+}
+
+message CreateRuleRequest {
+  string project = 1;
+  string body = 2;
+}
+
+message CreateRuleResponse {
+  string id = 1;
+}
+
+message GetRuleRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message GetRuleResponse {
+  string id = 1;
+  string body = 2;
+}
+
+message UpdateRuleRequest {
+  string project = 1;
+  string id = 2;
+  string body = 3;
+}
+
+message UpdateRuleResponse {
+  string id = 1;
+}
+
+message DeleteRuleRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message DeleteRuleResponse {
+  string id = 1;
+}

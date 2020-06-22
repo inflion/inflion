@@ -13,7 +13,7 @@ package clientv1
 import (
 	"context"
 	"fmt"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"log"
 )
 
