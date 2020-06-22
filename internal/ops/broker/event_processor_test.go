@@ -20,11 +20,12 @@ import (
 
 type mockEventMatcher struct {
 }
+
 func (m mockEventMatcher) GetRulesMatchesTo(event monitor.MonitoringEvent) ([]rule.Rule, error) {
 	return []rule.Rule{
 		{
 			RuleName: "rule1",
-			Target:   "test",
+			Target:   "a9aebdfd-4d43-42b7-9315-b1b89e03ffa4",
 			Conditions: rule.Conditions{
 				Conditions: []rule.Condition{
 					{
@@ -44,7 +45,7 @@ type mockStore struct {
 }
 
 func (e mockStore) Get(request store.FlowGetRequest) (store.FlowGetResponse, error) {
-	jsonForTest := "../flow/json/sample_flow.json"
+	jsonForTest := "../flow/sample_flow.json"
 
 	bytes, err := ioutil.ReadFile(jsonForTest)
 	if err != nil {
@@ -59,10 +60,8 @@ func TestEventProcessor(t *testing.T) {
 	e := NewEventProcessor(mockStore{}, mockEventMatcher{})
 	err := e.process(
 		monitor.MonitoringEvent{
-			Type:    "mock-event",
 			Project: "sandbox",
-			Message: "message",
-			Values:  map[string]interface{}{"test": "test"},
+			Body:    map[string]interface{}{"type": "test", "message": "message"},
 		},
 	)
 	if err != nil {
