@@ -1,4 +1,4 @@
-//go:generate protoc -I jobserverpb/ jobserverpb/job.proto --go_out=plugins=grpc:jobserverpb
+//go:generate protoc -I jobserverpb/ jobserverpb/jobserver.proto --go_out=plugins=grpc:jobserverpb
 // Copyright 2020 The Inflion Authors.
 //
 // Use of this software is governed by the Business Source License

@@ -13,7 +13,7 @@ package clientv1
 import (
 	"context"
 	"github.com/google/uuid"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	pb "github.com/inflion/inflion/inflionserver/job/jobpb"
 	"github.com/inflion/inflion/internal/job"
 )
 

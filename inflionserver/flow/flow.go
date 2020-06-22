@@ -13,7 +13,7 @@ package flow
 import (
 	"context"
 	"github.com/google/uuid"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"github.com/inflion/inflion/internal/ops/flow"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"

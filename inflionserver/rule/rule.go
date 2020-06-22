@@ -13,7 +13,7 @@ package rule
 import (
 	"context"
 	"github.com/google/uuid"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	pb "github.com/inflion/inflion/inflionserver/rule/rulepb"
 	"github.com/inflion/inflion/internal/ops/rule"
 	"log"
 )
