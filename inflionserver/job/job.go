@@ -12,7 +12,7 @@ package job
 
 import (
 	"context"
-	spb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	spb "github.com/inflion/inflion/inflionserver/job/jobpb"
 	cpb "github.com/inflion/inflion/jobserver/jobserverpb"
 	"google.golang.org/grpc"
 	"log"

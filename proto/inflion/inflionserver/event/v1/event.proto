@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package inflion.inflionserver.event.v1;
+option go_package = "/eventpb";
+
+import "google/api/annotations.proto";
+
+service Event {
+  rpc Put (PutEventRequest) returns (PutEventResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/events"
+      body: "*"
+    };
+  }
+}
+
+message PutEventRequest {
+  string event = 1;
+}
+
+message PutEventResponse {
+}

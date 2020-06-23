@@ -12,7 +12,7 @@ package event
 
 import (
 	"context"
-	pb "github.com/inflion/inflion/inflionserver/inflionserverpb"
+	pb "github.com/inflion/inflion/inflionserver/event/eventpb"
 	"github.com/inflion/inflion/internal/ops/producer"
 )
 

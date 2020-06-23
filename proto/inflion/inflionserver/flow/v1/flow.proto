@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package inflion.inflionserver.flow.v1;
+option go_package = "/flowpb";
+
+import "google/api/annotations.proto";
+
+service FlowInfo {
+  rpc List (ListFlowRequest) returns (ListFlowResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/flows"
+    };
+  }
+
+  rpc Run (RunFlowRequest) returns (RunFlowResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/flow/run"
+      body: "*"
+    };
+  }
+
+  rpc Create (CreateFlowRequest) returns (CreateFlowResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/flows"
+      body: "*"
+    };
+  }
+
+  rpc Get (GetFlowRequest) returns (GetFlowResponse)
+  {
+    option (google.api.http) = {
+      get: "/v1/flow"
+    };
+  }
+
+  rpc Update (UpdateFlowRequest) returns (UpdateFlowResponse)
+  {
+    option (google.api.http) = {
+      put: "/v1/flow"
+      body: "*"
+    };
+  }
+
+  rpc Delete (DeleteFlowRequest) returns (DeleteFlowResponse)
+  {
+    option (google.api.http) = {
+      delete: "/v1/flow"
+    };
+  }
+}
+
+message Flow {
+  string project = 1;
+  string id = 2;
+  string body = 3;
+}
+
+message ListFlowRequest {
+  string project = 1;
+}
+
+message ListFlowResponse {
+  repeated Flow flows = 1;
+}
+
+message RunFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message RunFlowResponse {
+  enum ExitStatus {
+    SUCCESS = 0;
+    FAILURE = 1;
+  }
+  ExitStatus status = 1;
+  string output = 2;
+}
+
+message CreateFlowRequest {
+  string project = 1;
+  string body = 2;
+}
+
+message CreateFlowResponse {
+  string id = 1;
+}
+
+message GetFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message GetFlowResponse {
+  string id = 1;
+  string body = 2;
+}
+
+message UpdateFlowRequest {
+  string project = 1;
+  string id = 2;
+  string body = 3;
+}
+
+message UpdateFlowResponse {
+  string id = 1;
+}
+
+message DeleteFlowRequest {
+  string project = 1;
+  string id = 2;
+}
+
+message DeleteFlowResponse {
+  string id = 1;
+}

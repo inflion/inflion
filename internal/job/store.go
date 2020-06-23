@@ -22,6 +22,57 @@ type EtcdStore struct {
 	client *clientv3.Client
 }
 
+func (e EtcdStore) List(ctx context.Context) ([]Job, error) {
+	projects, err := e.listProjects(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(projects)
+
+	var merged []Job
+	for _, p := range projects {
+		jobs, err := e.list(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		for _, j := range jobs {
+			merged = append(merged, j)
+		}
+	}
+	return merged, nil
+}
+
+func (e EtcdStore) Create(ctx context.Context, job Job) error {
+	ops := []clientv3.Op{
+		clientv3.OpPut(e.scheduleKey(job), job.Schedule),
+		clientv3.OpPut(e.flowKey(job), job.FlowId.String()),
+	}
+
+	for _, op := range ops {
+		_, err := e.connect().Do(ctx, op)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (e EtcdStore) Remove(ctx context.Context, job Job) error {
+	ops := []clientv3.Op{
+		clientv3.OpDelete(e.scheduleKey(job)),
+		clientv3.OpDelete(e.flowKey(job)),
+	}
+	for _, op := range ops {
+		_, err := e.connect().Do(ctx, op)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (e EtcdStore) listProjects(ctx context.Context) ([]string, error) {
 	m := map[string]bool{}
 	var projects []string
@@ -32,7 +83,7 @@ func (e EtcdStore) listProjects(ctx context.Context) ([]string, error) {
 	}
 
 	for _, v := range resp.Kvs {
-		m[strings.Split(string(v.Key), "/")[0]] = true
+		m[strings.Split(string(v.Key), "/")[1]] = true
 	}
 	for k, _ := range m {
 		projects = append(projects, k)
@@ -88,54 +139,6 @@ func (e EtcdStore) list(ctx context.Context, project string) ([]Job, error) {
 	return jobs, nil
 }
 
-func (e EtcdStore) List(ctx context.Context) ([]Job, error) {
-	projects, err := e.listProjects(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var merged []Job
-	for _, p := range projects {
-		jobs, err := e.list(ctx, p)
-		if err != nil {
-			return nil, err
-		}
-		for _, j := range jobs {
-			merged = append(merged, j)
-		}
-	}
-	return merged, nil
-}
-
-func (e EtcdStore) Create(ctx context.Context, job Job) error {
-	ops := []clientv3.Op{
-		clientv3.OpPut(e.scheduleKey(job), job.Schedule),
-		clientv3.OpPut(e.flowKey(job), job.FlowId.String()),
-	}
-
-	for _, op := range ops {
-		_, err := e.connect().Do(ctx, op)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (e EtcdStore) Remove(ctx context.Context, job Job) error {
-	ops := []clientv3.Op{
-		clientv3.OpDelete(e.scheduleKey(job)),
-		clientv3.OpDelete(e.flowKey(job)),
-	}
-	for _, op := range ops {
-		_, err := e.connect().Do(ctx, op)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func (e EtcdStore) key(job Job) string {
 	return fmt.Sprintf("/%s/jobs/%d", job.Project, job.Id)
