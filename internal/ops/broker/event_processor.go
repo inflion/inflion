@@ -36,11 +36,15 @@ func NewEventProcessor(store store.Store, matcher rule.EventMatcher) eventProces
 }
 
 func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
+	log.Printf("processing evnet: %+v", event)
+
 	matchedRules, err := d.matcher.GetRulesMatchesTo(event)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+
+	log.Printf("matched rules: %+v", matchedRules)
 
 	for _, matchedRule := range matchedRules {
 		flowId, err := uuid.Parse(matchedRule.Target)
@@ -61,10 +65,16 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 
 		f := flow.NewOpsFlow(ByteRecipeReader{body: []byte(resp.Body)})
 		ec := flow.NewExecutionContext()
+		ec.AddFields("project", flow.ExecutionFields{
+			Values: map[string]interface{}{"id": event.Project},
+		})
 		ec.AddFields("event", flow.ExecutionFields{
 			Values: event.Body,
 		})
-		result, err := f.Run(flow.NewExecutionContext())
+		ec.AddFields("raw-event", flow.ExecutionFields{
+			Values: map[string]interface{}{"json": event.RawBody},
+		})
+		result, err := f.Run(ec)
 		if err != nil {
 			log.Println(err)
 		}

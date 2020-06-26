@@ -276,10 +276,3 @@ volumes:
   db-data:
     driver: local
 
-networks:
-  etcd_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: ${NETWORK_CONFIG_SUBNET}
