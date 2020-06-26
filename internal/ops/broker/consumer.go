@@ -58,13 +58,15 @@ func (n *nsqConsumer) HandleMessage(message *nsq.Message) error {
 	err := json.Unmarshal(message.Body, &event)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
+
+	event.RawBody = message.Body
 
 	err = n.processor.process(event)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return err
 	}
 
 	return nil

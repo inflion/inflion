@@ -12,12 +12,14 @@ package monitor
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 )
 
 type MonitoringEvent struct {
 	Project string                 `json:"project"`
 	Body    map[string]interface{} `json:"body"`
+	RawBody json.RawMessage
 }
 
 func (e *MonitoringEvent) HasAttribute(key string) bool {

@@ -102,6 +102,7 @@ func (e EtcdStore) list(ctx context.Context, project string) ([]Job, error) {
 
 	for _, kv := range resp.Kvs {
 		project := e.extractProjectFrom(kv.Key)
+		log.Printf("---- %s ----", string(kv.Key))
 		jobId, err := strconv.Atoi(e.extractJobIdFrom(kv.Key))
 		if err != nil {
 			log.Printf("job error: invalid id format %+v", err)
@@ -139,7 +140,6 @@ func (e EtcdStore) list(ctx context.Context, project string) ([]Job, error) {
 	return jobs, nil
 }
 
-
 func (e EtcdStore) key(job Job) string {
 	return fmt.Sprintf("/%s/jobs/%d", job.Project, job.Id)
 }
@@ -157,7 +157,7 @@ func (e EtcdStore) extractJobIdFrom(key []byte) string {
 }
 
 func (e EtcdStore) extractProjectFrom(key []byte) string {
-	return strings.Split(string(key), "/")[2]
+	return strings.Split(string(key), "/")[1]
 }
 
 func (e EtcdStore) connect() *clientv3.Client {
