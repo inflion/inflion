@@ -94,8 +94,13 @@ func ruleUpdateCommand() *cobra.Command {
 		Use:   "update",
 		Short: "Update a rule",
 		Run: func(cmd *cobra.Command, args []string) {
+			rulejson, err := ioutil.ReadFile(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			c := clientv1.NewRuleClient(project(), endpoint())
-			id, err := c.Update(id, body)
+			id, err := c.Update(id, string(rulejson))
 			if err != nil {
 				log.Print(err)
 				os.Exit(1)
@@ -105,14 +110,15 @@ func ruleUpdateCommand() *cobra.Command {
 			os.Exit(0)
 		},
 	}
-	cmd.Flags().StringVar(&id, "id", "", "an id of a rule")
-	cmd.Flags().StringVar(&body, "body", "", "a body json of a rule")
 
+	cmd.Flags().StringVar(&id, "id", "", "an id of a rule")
 	err := cmd.MarkFlagRequired("id")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = cmd.MarkFlagRequired("body")
+
+	cmd.Flags().StringVarP(&file, "file", "f", "", "path of a rule file(required)")
+	err = cmd.MarkFlagRequired("file")
 	if err != nil {
 		log.Fatal(err)
 	}

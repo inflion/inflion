@@ -1,3 +1,12 @@
+dev:
+	docker run \
+		--rm \
+		-it \
+		-w /go/src/github.com/inflion/inflion \
+		-v `pwd`:/go/src/github.com/inflion/inflion \
+		golang:1.14.4 \
+		bash
+
 up:
 	cd deployments/docker-compose && docker-compose up -d
 

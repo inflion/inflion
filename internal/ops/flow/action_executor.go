@@ -11,6 +11,8 @@
 package flow
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/configstore"
 	"github.com/inflion/inflion/internal/paws"
@@ -182,19 +184,65 @@ type NotificationActionExecutor struct {
 
 func (n NotificationActionExecutor) Run(ec ExecutionContext, a Action) (ActionResult, error) {
 	log.Println("execute action: " + a.Type)
+	event := ec.ExecutionFields.Fields["event"].Values
+	rawEvent := ec.ExecutionFields.Fields["raw-event"].Values["json"]
+	log.Printf("event: %+v", event)
 
-	ec.GetValueByPath(NewPath("trigger.event"))
+	if a.Params["type"] == "aws" {
+		var notifier action.AwsSlackNotifier
+		if accountMapping, ok := a.Params["account_mapping"]; ok {
+			log.Println(accountMapping)
+			notifier = action.AwsSlackNotifier{
+				AccountMapping: n.convertAccountMapping(accountMapping),
+			}
+		} else {
+			notifier = action.AwsSlackNotifier{}
+		}
+		err := notifier.Notify(a.Params, event, rawEvent.(json.RawMessage))
+		if err != nil {
+			log.Printf("notify err, %+v", err)
+			return ActionResult{
+				Action: a,
+				Outputs: map[string]string{
+					"result":  "false",
+					"message": fmt.Sprintf("%+v", err),
+				},
+				ExitStatus: false,
+			}, nil
+		}
+		return ActionResult{
+			Action: a,
+			Outputs: map[string]string{
+				"result": "true",
+			},
+			ExitStatus: true,
+		}, nil
+	} else {
+		return ActionResult{
+			Action: a,
+			Outputs: map[string]string{
+				"result":  "false",
+				"message": "type not found",
+			},
+			ExitStatus: false,
+		}, nil
+	}
+}
 
-	notifier := action.SlackNotifier{}
-	notifier.Notify(a.Params)
-
-	return ActionResult{
-		Action: a,
-		Outputs: map[string]string{
-			"result": "true",
-		},
-		ExitStatus: true,
-	}, nil
+// convert account mapping.
+// from: 1234:name,5678:name2
+// to: map[string]string{1234: name, 5678: name2}
+func (n NotificationActionExecutor) convertAccountMapping(from string) map[string]string {
+	mapping := map[string]string{}
+	for _, m := range strings.Split(from, ",") {
+		log.Printf("%+v", m)
+		tmp := strings.Split(m, ":")
+		log.Printf("%+v", tmp)
+		if len(tmp) > 1 {
+			mapping[tmp[0]] = tmp[1]
+		}
+	}
+	return mapping
 }
 
 type LoggingActionExecutor struct {
