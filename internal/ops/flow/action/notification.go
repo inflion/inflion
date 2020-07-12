@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/ashwanthkumar/slack-go-webhook"
 	"log"
+	"strings"
 )
 
 type AwsSlackNotifier struct {
@@ -153,6 +154,10 @@ func (s *AwsSlackNotifier) Notify(params map[string]string, event map[string]int
 			}
 		}
 
+		if attachments == nil {
+			return nil
+		}
+
 		err = sender.send(attachments)
 		if err != nil {
 			log.Println(err)
@@ -174,6 +179,39 @@ func (s *AwsSlackNotifier) error(err error, rawEvent json.RawMessage) []slack.At
 	}
 	return attachments
 }
+
+type ignoreList struct {
+	values []string
+}
+
+func newIgnoreList(commaSeparatedList string) ignoreList {
+	var values []string
+	for _, title := range strings.Split(commaSeparatedList, ",") {
+		values = append(values, title)
+	}
+	return ignoreList{
+		values: values,
+	}
+}
+
+func (i ignoreList) has(value string) bool {
+	for _, v := range i.values {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (i ignoreList) contains(value string) bool {
+	for _, v := range i.values {
+		return strings.Contains(value, v)
+	}
+
+	return false
+}
+
 
 func (s *AwsSlackNotifier) trustedAdvisor(params map[string]string, event map[string]interface{}, cwevent CloudWatchEvent, rawEvent json.RawMessage) ([]slack.Attachment, error) {
 	var attachments []slack.Attachment
@@ -200,6 +238,14 @@ func (s *AwsSlackNotifier) trustedAdvisor(params map[string]string, event map[st
 	} else {
 		accountName = n
 	}
+
+	if ignoreTitleList, ok := params["ignore_title"]; ok {
+		if newIgnoreList(ignoreTitleList).has(tae.CheckName) {
+			log.Println("ignore: " + tae.CheckName)
+			return nil, nil
+		}
+	}
+
 	attachments = append(attachments, slack.Attachment{
 		Title:      p(tae.CheckName),
 		Color:      p(tae.StatusColor()),
@@ -268,6 +314,12 @@ func (s *AwsSlackNotifier) guardDuty(params map[string]string, event map[string]
 			a.Text = p(fmt.Sprintf("<!channel> <@%s>", user))
 		} else {
 			a.Text = p("<!channel>")
+		}
+	}
+
+	if ignoreAddressList, ok := params["ignore_ip_addresses"]; ok {
+		if newIgnoreList(ignoreAddressList).contains(string(serviceJson)) {
+			return nil, nil
 		}
 	}
 
