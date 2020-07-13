@@ -1,9 +1,11 @@
 dev:
 	docker run \
+		--net host \
 		--rm \
 		-it \
 		-w /go/src/github.com/inflion/inflion \
 		-v `pwd`:/go/src/github.com/inflion/inflion \
+		-v `pwd`/../.inflion.yaml:/root/.inflion.yaml \
 		golang:1.14.4 \
 		bash
 
