@@ -52,7 +52,10 @@ func (e EtcdStore) Create(rule RuleJson) (uuid.UUID, error) {
 
 	rule.Id = id
 
-	_, err = e.connect().Put(context.Background(), e.createKey(rule), string(rule.Body))
+	c := e.connect()
+	defer c.Close()
+
+	_, err = c.Put(context.Background(), e.createKey(rule), string(rule.Body))
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -61,7 +64,10 @@ func (e EtcdStore) Create(rule RuleJson) (uuid.UUID, error) {
 }
 
 func (e EtcdStore) Get(rule RuleJson) (RuleJson, error) {
-	resp, err := e.connect().Get(context.Background(), e.createKey(rule))
+	c := e.connect()
+	defer c.Close()
+
+	resp, err := c.Get(context.Background(), e.createKey(rule))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,7 +79,10 @@ func (e EtcdStore) Get(rule RuleJson) (RuleJson, error) {
 }
 
 func (e EtcdStore) Update(rule RuleJson) error {
-	_, err := e.connect().Put(context.Background(), e.createKey(rule), string(rule.Body))
+	c := e.connect()
+	defer c.Close()
+
+	_, err := c.Put(context.Background(), e.createKey(rule), string(rule.Body))
 	if err != nil {
 		log.Println(err)
 		return err
@@ -82,7 +91,10 @@ func (e EtcdStore) Update(rule RuleJson) error {
 }
 
 func (e EtcdStore) Delete(rule RuleJson) error {
-	_, err := e.connect().Delete(context.Background(), e.createKey(rule))
+	c := e.connect()
+	defer c.Close()
+
+	_, err := c.Delete(context.Background(), e.createKey(rule))
 	if err != nil {
 		log.Println(err)
 		return err
@@ -92,7 +104,11 @@ func (e EtcdStore) Delete(rule RuleJson) error {
 
 func (e EtcdStore) GetRules(project string) ([]Rule, error) {
 	key := fmt.Sprintf("/%s/rules", project)
-	v, err := e.connect().Get(context.Background(), key, clientv3.WithPrefix())
+
+	c := e.connect()
+	defer c.Close()
+
+	v, err := c.Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -114,14 +130,12 @@ func (e EtcdStore) GetRules(project string) ([]Rule, error) {
 
 func (e EtcdStore) connect() *clientv3.Client {
 	var err error
-	if e.client == nil {
-		e.client, err = clientv3.New(clientv3.Config{
-			Endpoints:   strings.Split(os.Getenv("ETCD_ENDPOINTS"), ","),
-			DialTimeout: 5 * time.Second,
-		})
-		if err != nil {
-			log.Println(err)
-		}
+	e.client, err = clientv3.New(clientv3.Config{
+		Endpoints:   strings.Split(os.Getenv("ETCD_ENDPOINTS"), ","),
+		DialTimeout: 30 * time.Second,
+	})
+	if err != nil {
+		log.Println(err)
 	}
 	return e.client
 }
