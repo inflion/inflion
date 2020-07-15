@@ -186,8 +186,8 @@ type ignoreList struct {
 
 func newIgnoreList(commaSeparatedList string) ignoreList {
 	var values []string
-	for _, title := range strings.Split(commaSeparatedList, ",") {
-		values = append(values, title)
+	for _, value := range strings.Split(commaSeparatedList, ",") {
+		values = append(values, value)
 	}
 	return ignoreList{
 		values: values,
@@ -206,9 +206,10 @@ func (i ignoreList) has(value string) bool {
 
 func (i ignoreList) contains(value string) bool {
 	for _, v := range i.values {
-		return strings.Contains(value, v)
+		if strings.Contains(value, v) {
+			return true
+		}
 	}
-
 	return false
 }
 
