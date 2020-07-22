@@ -18,23 +18,25 @@ import (
 const topicName = "monitoring-events"
 const nsqdAddress = "nsqd:4150"
 
+var producer *nsq.Producer
+
 type Producer struct {
-	producer *nsq.Producer
 }
 
 func NewProducer() *Producer {
-	config := nsq.NewConfig()
-	p, err := nsq.NewProducer(nsqdAddress, config)
-	if err != nil {
-		panic(err)
-	}
-	return &Producer{
-		producer: p,
-	}
+	return &Producer{}
 }
 
-func (p *Producer) Produce(event []byte) error {
-	err := p.producer.Publish(topicName, event)
+func (p *Producer) Produce(event []byte) (err error) {
+	if producer == nil {
+		producer, err = nsq.NewProducer(nsqdAddress, nsq.NewConfig())
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	err = producer.Publish(topicName, event)
 	if err != nil {
 		log.Println(err)
 		return err
