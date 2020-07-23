@@ -3,6 +3,7 @@ module github.com/inflion/inflion
 go 1.14
 
 require (
+	github.com/PagerDuty/go-pagerduty v1.2.0
 	github.com/ashwanthkumar/slack-go-webhook v0.0.0-20200209025033-430dd4e66960
 	github.com/aws/aws-lambda-go v1.17.0
 	github.com/aws/aws-sdk-go v1.32.1

@@ -57,8 +57,9 @@ func (e EmbeddedActionLoader) Load(action Action) (ActionExecutor, error) {
 		return NotificationActionExecutor{}, nil
 	case "logging":
 		return LoggingActionExecutor{}, nil
+	case "pagerduty":
+		return PagerDutyActionExecutor{}, nil
 	}
 
 	return NullActionExecutor{}, errors.New("no embedded action found at " + action.Type)
 }
-
