@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package inflion.inflionserver.byteevent.v1;
+option go_package = "/byteeventpb";
+
+import "google/api/annotations.proto";
+
+service ByteEvent {
+  rpc Put (PutByteEventRequest) returns (PutEventResponse)
+  {
+    option (google.api.http) = {
+      post: "/v1/events"
+      body: "*"
+    };
+  }
+}
+
+message PutByteEventRequest {
+  bytes event = 1;
+}
+
+message PutEventResponse {
+}

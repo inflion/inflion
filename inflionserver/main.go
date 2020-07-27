@@ -2,8 +2,7 @@
 //go:generate protoc -I ../proto/inflion/inflionserver/rule/v1  ../proto/inflion/inflionserver/rule/v1/rule.proto   -I ../proto --go_out=plugins=grpc:rule
 //go:generate protoc -I ../proto/inflion/inflionserver/job/v1   ../proto/inflion/inflionserver/job/v1/job.proto     -I ../proto --go_out=plugins=grpc:job
 //go:generate protoc -I ../proto/inflion/inflionserver/event/v1 ../proto/inflion/inflionserver/event/v1/event.proto -I ../proto --go_out=plugins=grpc:event
-// Copyright 2020 The Inflion Authors.
-//
+//go:generate protoc -I ../proto/inflion/inflionserver/byteevent/v1 ../proto/inflion/inflionserver/byteevent/v1/byteevent.proto -I ../proto --go_out=plugins=grpc:byteevent
 // Use of this software is governed by the Business Source License
 // included in the file licenses/BSL.txt.
 //
@@ -15,6 +14,8 @@
 package main
 
 import (
+	"github.com/inflion/inflion/inflionserver/byteevent"
+	"github.com/inflion/inflion/inflionserver/byteevent/byteeventpb"
 	"github.com/inflion/inflion/inflionserver/event"
 	"github.com/inflion/inflion/inflionserver/event/eventpb"
 	"github.com/inflion/inflion/inflionserver/flow"
@@ -44,6 +45,7 @@ func main() {
 	rulepb.RegisterRuleServer(server, ruleserver.DefaultRuleServer{Store: rule.EtcdStore{}})
 	jobpb.RegisterJobInfoServer(server, job.NewJobServer())
 	eventpb.RegisterEventServer(server, event.DefaultEventServer{})
+	byteeventpb.RegisterByteEventServer(server, byteevent.DefaultByteEventServer{})
 
 	if err := server.Serve(lis); err != nil {
 		log.Fatal(err)
