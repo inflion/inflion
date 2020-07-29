@@ -133,7 +133,6 @@ func (s *AwsSlackNotifier) Notify(params map[string]string, event map[string]int
 	if err != nil {
 		return errors.New("invalid json")
 	}
-
 	if source, ok := event["source"]; ok {
 		cwe := CloudWatchEvent{}
 		err = json.Unmarshal(me.Body, &cwe)
@@ -142,11 +141,16 @@ func (s *AwsSlackNotifier) Notify(params map[string]string, event map[string]int
 		}
 
 		var attachments []slack.Attachment
-		if source == "aws.trustedadvisor" {
+
+		switch {
+		case source == "aws.trustedadvisor":
 			attachments, err = s.trustedAdvisor(params, event, cwe, rawEvent)
-		} else if source == "aws.guardduty" {
+		case source == "aws.guardduty":
 			attachments, err = s.guardDuty(params, event, cwe, rawEvent)
+		case source == "aws.config":
+			attachments, err = s.config(params, event, cwe, rawEvent)
 		}
+
 		if err != nil {
 			err = sender.send(s.error(err, rawEvent))
 			if err != nil {
@@ -262,6 +266,81 @@ func (s *AwsSlackNotifier) trustedAdvisor(params map[string]string, event map[st
 		Title: p("詳細"),
 		Color: p(tae.StatusColor()),
 		Text:  p(string(itemDetailJson)),
+	})
+
+	return attachments, nil
+}
+
+type ConfigEvent struct {
+	Title               string                 `json:"messageType"`
+	ResourceId          string                 `json:"resourceId"`
+	Region              string                 `json:"awsRegion"`
+	ConfigRuleName      string                 `json:"configRuleName"`
+	ResourceType        string                 `json:"resourceType"`
+	NewEvaluationResult map[string]interface{} `json:"newEvaluationResult"`
+	Account             string                 `json:"account"`
+}
+
+func (ce *ConfigEvent) StatusColor() string {
+	switch ce.getComplianceType() {
+	case "COMPLIANT":
+		return "#C3FFB9"
+	case "NON_COMPLIANT":
+		return "#FF0000"
+	}
+	return "#CCCCCC"
+}
+
+func (ce *ConfigEvent) getComplianceType() string {
+	var complianceType string
+	if t, ok := ce.NewEvaluationResult["complianceType"].(string); !ok {
+		complianceType = "unknown"
+	} else {
+		complianceType = t
+	}
+
+	return complianceType
+}
+
+func (s *AwsSlackNotifier) config(params map[string]string, event map[string]interface{}, cwevent CloudWatchEvent, rawEvent json.RawMessage) ([]slack.Attachment, error) {
+	var attachments []slack.Attachment
+
+	ce := ConfigEvent{}
+
+	err := json.Unmarshal(cwevent.Detail, &ce)
+	if err != nil {
+		if len(rawEvent) != 0 {
+			log.Println("unmarshal error", err)
+			return nil, err
+		}
+		return nil, errors.New("json is empty")
+	}
+
+	var accountName string
+	if n, ok := s.AccountMapping[event["account"].(string)]; !ok {
+		accountName = "unknown"
+	} else {
+		accountName = n
+	}
+
+	attachments = append(attachments, slack.Attachment{
+		Title:      p(ce.Title),
+		Color:      p(ce.StatusColor()),
+		AuthorName: p("Config"),
+		AuthorLink: p("https://console.aws.amazon.com/config/home/"),
+		Fields: []*slack.Field{
+			{Title: "アカウント", Value: accountName},
+			{Title: "ステータス", Value: ce.getComplianceType()},
+			{Title: "ルール名", Value: ce.ConfigRuleName},
+			{Title: "リソースID", Value: ce.ResourceId},
+			{Title: "リソースタイプ", Value: ce.ResourceType},
+		},
+	})
+
+	attachments = append(attachments, slack.Attachment{
+		Title: p("詳細"),
+		Color: p(ce.StatusColor()),
+		Text:  p(string(cwevent.Detail)),
 	})
 
 	return attachments, nil

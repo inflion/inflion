@@ -13,11 +13,13 @@ package flow
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PagerDuty/go-pagerduty"
 	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/configstore"
 	"github.com/inflion/inflion/internal/paws"
 	"log"
 	"strings"
+	"time"
 )
 
 type ActionResult struct {
@@ -275,6 +277,69 @@ func (p ParamsActionExecutor) Run(e ExecutionContext, a Action) (ActionResult, e
 	return ActionResult{
 		Action:     a,
 		Outputs:    outputs,
+		ExitStatus: true,
+	}, nil
+}
+
+type PagerDutyActionExecutor struct{}
+
+func (p PagerDutyActionExecutor) Run(ec ExecutionContext, action Action) (ActionResult, error) {
+	log.Println("execute action: " + action.Type)
+	log.Printf("action params: %+v", action.Params)
+
+	key, ok := action.Params["key"]
+	if !ok {
+		return ActionResult{
+			Action: action,
+			Outputs: map[string]string{
+				"result":  "false",
+				"message": "parameter \"key\" not found",
+			},
+			ExitStatus: false,
+		}, nil
+	}
+
+	source := "unknown"
+	s, ok := ec.ExecutionFields.Fields["event"].Values["source"]
+	if ok {
+		source = fmt.Sprintf("%v", s)
+	}
+
+	pagerdutyEvent := pagerduty.V2Event{
+		RoutingKey: key,
+		Action:     "trigger",
+		DedupKey:   "",
+		Client:     "inflion",
+		Payload: &pagerduty.V2Payload{
+			Summary:   "inflion event",
+			Source:    source,
+			Severity:  "critical",
+			Timestamp: time.Now().Format(time.RFC3339),
+			Details:   ec.ExecutionFields.Fields["event"],
+		},
+	}
+
+	resp, err := pagerduty.ManageEvent(pagerdutyEvent)
+	if err != nil {
+		return ActionResult{
+			Action: action,
+			Outputs: map[string]string{
+				"result":  "false",
+				"message": fmt.Sprintf("%+v", err),
+			},
+			ExitStatus: false,
+		}, nil
+	}
+
+	return ActionResult{
+		Action: action,
+		Outputs: map[string]string{
+			"result":    "true",
+			"status":    resp.Status,
+			"dedup_key": resp.DedupKey,
+			"message":   resp.Message,
+			"errors":    strings.Join(resp.Errors, ","),
+		},
 		ExitStatus: true,
 	}, nil
 }
