@@ -98,13 +98,13 @@ func (g *GuardDutyEvent) addMention(attachment slack.Attachment, params map[stri
 }
 
 func (g *GuardDutyEvent) Ignore(params map[string]string) bool {
-	serviceJson, err := json.Marshal(g.Service)
-	if err != nil {
+	ignore, ok := params["ignore_ip_addresses"]
+	if !ok {
 		return false
 	}
 
-	ignore, ok := params["ignore_ip_addresses"]
-	if !ok {
+	serviceJson, err := json.Marshal(g.Service)
+	if err != nil {
 		return false
 	}
 
