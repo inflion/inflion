@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"github.com/inflion/inflion/internal/ops/flow"
+	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"
 )
@@ -50,8 +51,8 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		return nil, err
 	}
 
-	ec := flow.NewExecutionContext()
-	ec.AddFields("system", flow.ExecutionFields{
+	ec := action.NewExecutionContext()
+	ec.AddFields("system", action.ExecutionFields{
 		Values: map[string]interface{}{
 			"project": request.Project,
 		},

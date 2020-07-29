@@ -56,17 +56,17 @@ type ConditionJsonV1 struct {
 	} `json:"if_false"`
 }
 
-func (c *ConditionJsonV1) mustConvert() Condition {
-	return Condition{
+func (c *ConditionJsonV1) mustConvert() ConditionStage {
+	return ConditionStage{
 		Id:          c.Id,
 		Expressions: c.mustConvertExpressions(),
 		IfTrue: NextStage{
-			Id:   c.IfTrue.NextId,
-			Node: nil,
+			Id:    c.IfTrue.NextId,
+			Stage: nil,
 		},
 		IfFalse: NextStage{
-			Id:   c.IfFalse.NextId,
-			Node: nil,
+			Id:    c.IfFalse.NextId,
+			Stage: nil,
 		},
 	}
 }
@@ -98,13 +98,13 @@ func (v StageActionJsonV1) mustConvert() Action {
 	}
 }
 
-func (v StageJsonV1) mustConvert() Stage {
-	return Stage{
+func (v StageJsonV1) mustConvert() NormalStage {
+	return NormalStage{
 		Id:   v.Id,
 		Name: v.Name,
 		NextStage: NextStage{
-			Id:   v.Next,
-			Node: nil,
+			Id:    v.Next,
+			Stage: nil,
 		},
 		Actions: v.mustConvertActions(),
 	}
@@ -113,7 +113,7 @@ func (v StageJsonV1) mustConvert() Stage {
 func (v StageJsonV1) mustConvertActions() Actions {
 	a := Actions{}
 	for _, aj := range v.Actions {
-		a.Actions = append(a.Actions, aj.mustConvert())
+		a = append(a, aj.mustConvert())
 	}
 	return a
 }

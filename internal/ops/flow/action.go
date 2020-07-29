@@ -1,3 +1,5 @@
+package flow
+
 // Copyright 2020 The Inflion Authors.
 //
 // Use of this software is governed by the Business Source License
@@ -8,13 +10,38 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package flow
-
-type Actions struct {
-	Actions []Action
-}
-
 type Action struct {
 	Type   string
 	Params map[string]string
+}
+
+type Actions []Action
+
+type ActionResult struct {
+	Action     Action
+	Outputs    map[string]string
+	ExitStatus bool
+}
+
+type ActionResults []ActionResult
+
+func (a ActionResults) isSuccess() bool {
+	for _, ar := range a {
+		if ar.ExitStatus == false {
+			return false
+		}
+	}
+	return true
+}
+
+func (a ActionResults) getExitMessage() string {
+	if a.isSuccess() {
+		return "success"
+	}
+
+	return "fail"
+}
+
+func (a ActionResults) append(result ActionResult) ActionResults {
+	return append(a, result)
 }

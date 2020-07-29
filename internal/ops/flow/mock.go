@@ -10,43 +10,39 @@
 
 package flow
 
-type MockRecipeReader struct{}
+type MockOpsFlow struct{}
 
-func (MockRecipeReader) Read() (Recipe, error) {
-	stageS1 := Stage{
+func (MockOpsFlow) Read() (Flow, error) {
+	stageS1 := NormalStage{
 		Id:   "stage1-id",
 		Name: "stage1-name",
 		NextStage: NextStage{
 			Id: "cond1-id",
 		},
 		Actions: Actions{
-			Actions: []Action{
-				{
-					Type:   "matcher",
-					Params: nil,
-				},
+			{
+				Type:   "matcher",
+				Params: nil,
 			},
 		},
 	}
-	stageS2 := Stage{
+	stageS2 := NormalStage{
 		Id:   "stage2-id",
 		Name: "stage2-name",
 		NextStage: NextStage{
 			Id: "stage3-id",
 		},
 		Actions: Actions{
-			Actions: []Action{
-				{
-					Type: "instance",
-					Params: map[string]string{
-						"action":             "restart",
-						"target_instance_id": "i-12345",
-					},
+			{
+				Type: "instance",
+				Params: map[string]string{
+					"action":             "restart",
+					"target_instance_id": "i-12345",
 				},
 			},
 		},
 	}
-	stageS3 := Stage{
+	stageS3 := NormalStage{
 		Id:   "stage3-id",
 		Name: "stage3-name",
 		NextStage: NextStage{
@@ -54,7 +50,7 @@ func (MockRecipeReader) Read() (Recipe, error) {
 		},
 		Actions: Actions{},
 	}
-	stageS4 := Stage{
+	stageS4 := NormalStage{
 		Id:   "stage4-id",
 		Name: "stage4-name",
 		NextStage: NextStage{
@@ -63,7 +59,7 @@ func (MockRecipeReader) Read() (Recipe, error) {
 		Actions: Actions{},
 	}
 
-	condition1 := Condition{
+	condition1 := ConditionStage{
 		Id: "cond1-id",
 		Expressions: []Expression{
 			{
@@ -80,14 +76,14 @@ func (MockRecipeReader) Read() (Recipe, error) {
 		},
 	}
 
-	return Recipe{
+	return Flow{
 		Conditions: Conditions{
-			Conditions: []Condition{
+			Conditions: []ConditionStage{
 				condition1,
 			},
 		},
 		Stages: Stages{
-			Stages: []Stage{
+			Stages: []NormalStage{
 				stageS1, stageS2, stageS3, stageS4,
 			},
 		},

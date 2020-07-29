@@ -15,17 +15,15 @@ import (
 	"testing"
 )
 
-type MockActionLoader struct {
-}
-
 type MockActionExecutor struct {
+	action Action
 }
 
-func (m MockActionExecutor) Run(_ ExecutionContext, action Action) (ActionResult, error) {
+func (m MockActionExecutor) Run(_ ExecutionContext) (ActionResult, error) {
 	log.Println("exec mock action")
 
 	return ActionResult{
-		Action: action,
+		Action: m.action,
 		Outputs: map[string]string{
 			"output1-key": "output1-value",
 			"output2-key": "output2-value",
@@ -34,19 +32,21 @@ func (m MockActionExecutor) Run(_ ExecutionContext, action Action) (ActionResult
 	}, nil
 }
 
-func (m MockActionLoader) Load(_ Action) (ActionExecutor, error) {
-	return MockActionExecutor{}, nil
+type MockActionLoader struct{}
+
+func (m MockActionLoader) Load(action Action) (ActionExecutor, error) {
+	return MockActionExecutor{action: action}, nil
 }
 
 func Test_last_status_should_be_success(t *testing.T) {
-	recipe, _ := MockRecipeReader{}.Read()
+	flow, _ := MockOpsFlow{}.Read()
 
-	r, err := recipe.LinkToNextStages()
+	r, err := flow.LinkToNextStages()
 	if err != nil {
 		t.Error(err)
 	}
 
-	result, _ := NewExecutor(MockActionLoader{}, NewExecutionContext()).run(r)
+	result, _ := NewFlowExecutor(r, NewAggregateActionLoader()).Run(NewExecutionContext())
 
 	got := result.Context.GetValueByPath(NewPath("last.status"))
 	want := "success"
@@ -56,14 +56,14 @@ func Test_last_status_should_be_success(t *testing.T) {
 }
 
 func Test_stage1_result_should_have_message(t *testing.T) {
-	recipe, _ := MockRecipeReader{}.Read()
+	flow, _ := MockOpsFlow{}.Read()
 
-	r, err := recipe.LinkToNextStages()
+	linkedFlow, err := flow.LinkToNextStages()
 	if err != nil {
 		t.Error(err)
 	}
 
-	result, _ := NewExecutor(MockActionLoader{}, NewExecutionContext()).run(r)
+	result, _ := NewFlowExecutor(linkedFlow, MockActionLoader{}).Run(NewExecutionContext())
 
 	got := result.Context.GetValueByPath(NewPath("stage1-name.output1-key"))
 	want := "output1-value"

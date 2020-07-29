@@ -10,7 +10,9 @@
 
 package flow
 
-import "log"
+import (
+	"log"
+)
 
 type Expression struct {
 	Input     string
@@ -19,18 +21,18 @@ type Expression struct {
 }
 
 type Conditions struct {
-	Conditions []Condition
+	Conditions []ConditionStage
 }
 
-func (c Conditions) Get(index int) Condition {
+func (c Conditions) Get(index int) ConditionStage {
 	if index < len(c.Conditions) {
 		return c.Conditions[index]
 	}
 
-	return Condition{}
+	return ConditionStage{}
 }
 
-func (c Conditions) ReplaceById(id string, cond Condition) Conditions {
+func (c Conditions) ReplaceById(id string, cond ConditionStage) Conditions {
 	newConditions := Conditions{c.Conditions}
 	for i, elm := range c.Conditions {
 		if elm.Id == id {
@@ -42,34 +44,34 @@ func (c Conditions) ReplaceById(id string, cond Condition) Conditions {
 	return newConditions
 }
 
-type Condition struct {
+type ConditionStage struct {
 	Id          string
 	Expressions []Expression
 	IfTrue      NextStage
 	IfFalse     NextStage
 }
 
-func (c Condition) getId() string {
+func (c ConditionStage) getId() string {
 	return c.Id
 }
 
-func (c Condition) isEnd() bool {
-	return c.Id == "__end__"
+func (c ConditionStage) isEnd() bool {
+	return c.Id == endStageId
 }
 
-func (c Condition) IsEmpty() bool {
+func (c ConditionStage) IsEmpty() bool {
 	return c.Id == ""
 }
 
-func (c Condition) isStage() bool {
+func (c ConditionStage) isNormalStage() bool {
 	return false
 }
 
-func (c Condition) isCondition() bool {
+func (c ConditionStage) isConditionStage() bool {
 	return true
 }
 
-func (c Condition) Evaluate(context ExecutionContext) Node {
+func (c ConditionStage) Evaluate(context ExecutionContext) Stage {
 	ex := c.Expressions[0]
 	value := context.GetValueByPath(Path{Path: ex.Input})
 
@@ -77,16 +79,15 @@ func (c Condition) Evaluate(context ExecutionContext) Node {
 
 	if ex.Operation == "equals" {
 		if value == ex.Value {
-			return c.IfTrue.Node
+			return c.IfTrue.Stage
 		} else {
-			return c.IfFalse.Node
+			return c.IfFalse.Stage
 		}
 	}
 
 	return nil
 }
 
-func (c Condition) wasNextStageResolved() bool {
-	return c.IfTrue.Node != nil && c.IfFalse.Node != nil
+func (c ConditionStage) wasNextStageResolved() bool {
+	return c.IfTrue.Stage != nil && c.IfFalse.Stage != nil
 }
-

@@ -19,7 +19,7 @@ type mockEventProcessor struct {
 	processedEventCount int
 }
 
-func (m *mockEventProcessor) process(event monitor.MonitoringEvent) error {
+func (m *mockEventProcessor) process(_ monitor.MonitoringEvent) error {
 	m.processedEventCount = m.processedEventCount + 1
 	return nil
 }
@@ -27,7 +27,7 @@ func (m *mockEventProcessor) process(event monitor.MonitoringEvent) error {
 type mockConsumer struct {
 }
 
-func (m mockConsumer) consume(processor eventProcessor) {
+func (m mockConsumer) consume(processor EventProcessor) {
 	_ = processor.process(monitor.MonitoringEvent{
 		Project: "sandbox",
 		Body:    map[string]interface{}{"type": "test", "message": "message"},

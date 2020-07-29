@@ -19,7 +19,7 @@ import (
 	"log"
 )
 
-type eventProcessor interface {
+type EventProcessor interface {
 	process(event monitor.MonitoringEvent) error
 }
 
@@ -28,7 +28,7 @@ type defaultEventProcessor struct {
 	store   store.Store
 }
 
-func NewEventProcessor(store store.Store, matcher rule.EventMatcher) eventProcessor {
+func NewEventProcessor(store store.Store, matcher rule.EventMatcher) EventProcessor {
 	return defaultEventProcessor{
 		store:   store,
 		matcher: matcher,
@@ -63,7 +63,11 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 			return err
 		}
 
-		f := flow.NewOpsFlow(ByteRecipeReader{body: []byte(resp.Body)})
+		f, err := ByteFlowReader{body: []byte(resp.Body)}.Read()
+		if err != nil {
+			log.Println(err)
+		}
+
 		ec := flow.NewExecutionContext()
 		ec.AddFields("project", flow.ExecutionFields{
 			Values: map[string]interface{}{"id": event.Project},
@@ -74,7 +78,8 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 		ec.AddFields("raw-event", flow.ExecutionFields{
 			Values: map[string]interface{}{"json": event.RawBody},
 		})
-		result, err := f.Run(ec)
+
+		result, err := flow.NewFlowExecutor(f, flow.NewAggregateActionLoader()).Run(ec)
 		if err != nil {
 			log.Println(err)
 		}
@@ -84,14 +89,14 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 	return nil
 }
 
-type ByteRecipeReader struct {
+type ByteFlowReader struct {
 	body []byte
 }
 
-func (b ByteRecipeReader) Read() (flow.Recipe, error) {
+func (b ByteFlowReader) Read() (flow.Flow, error) {
 	recipe, err := flow.Unmarshal(b.body)
 	if err != nil {
-		return flow.Recipe{}, err
+		return flow.Flow{}, err
 	}
 	return recipe, nil
 }
