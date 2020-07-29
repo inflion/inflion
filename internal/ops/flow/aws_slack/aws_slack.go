@@ -49,7 +49,7 @@ func BuildAttachments(awsEvent AwsSlackEvent, account string, params map[string]
 	attachments = append(attachments, awsEvent.addMention(a, params))
 
 	attachments = append(attachments, slack.Attachment{
-		Title: p("detail"),
+		Title: p("Detail"),
 		Color: p(awsEvent.statusColor()),
 		Text:  p(awsEvent.Detail()),
 	})
