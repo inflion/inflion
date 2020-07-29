@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ashwanthkumar/slack-go-webhook"
-	"log"
 	"strings"
 )
 
@@ -81,7 +80,6 @@ func (g *GuardDutyEvent) Detail() string {
 }
 
 func (g *GuardDutyEvent) addMention(attachment slack.Attachment, params map[string]string) slack.Attachment {
-	log.Print(g.severityLevel())
 	switch g.severityLevel() {
 	case guardDutySeverityLOW:
 		return attachment
