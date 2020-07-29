@@ -18,7 +18,10 @@ type ActionLoader interface {
 	Load(action Action) (ActionExecutor, error)
 }
 
-type AggregateActionLoader struct {
+type AggregateActionLoader struct{}
+
+func NewAggregateActionLoader() *AggregateActionLoader {
+	return &AggregateActionLoader{}
 }
 
 func (a AggregateActionLoader) Load(action Action) (ActionExecutor, error) {
@@ -38,28 +41,26 @@ func (a AggregateActionLoader) Load(action Action) (ActionExecutor, error) {
 	return NullActionExecutor{}, errors.New("no action found at type: " + action.Type)
 }
 
-type EmbeddedActionLoader struct {
-}
+type EmbeddedActionLoader struct{}
 
 func (e EmbeddedActionLoader) Load(action Action) (ActionExecutor, error) {
 	switch action.Type {
 	case "params":
-		return ParamsActionExecutor{}, nil
+		return ParamsActionExecutor{action: action}, nil
 	case "config":
-		return ConfigActionExecutor{}, nil
+		return ConfigActionExecutor{action: action}, nil
 	case "matcher":
-		return MatcherActionExecutor{}, nil
+		return MatcherActionExecutor{action: action}, nil
 	case "instance":
-		return InstanceActionExecutor{}, nil
+		return InstanceActionExecutor{action: action}, nil
 	case "instance-data":
-		return InstanceDataActionExecutor{}, nil
-	case "notification":
-		return NotificationActionExecutor{}, nil
+		return InstanceDataActionExecutor{action: action}, nil
+	case "aws-slack":
+		return AwsSlackNotificationActionExecutor{action: action}, nil
 	case "logging":
-		return LoggingActionExecutor{}, nil
+		return LoggingActionExecutor{action: action}, nil
 	case "pagerduty":
-		return PagerDutyActionExecutor{}, nil
+		return PagerDutyActionExecutor{action: action}, nil
 	}
-
 	return NullActionExecutor{}, errors.New("no embedded action found at " + action.Type)
 }

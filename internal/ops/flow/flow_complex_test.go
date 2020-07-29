@@ -16,7 +16,7 @@ import (
 	"testing"
 )
 
-func read() Recipe {
+func read() Flow {
 	bytes, err := ioutil.ReadFile("./test.json")
 	if err != nil {
 		log.Fatal(err)
@@ -30,8 +30,8 @@ func read() Recipe {
 }
 
 func Test_complex(t *testing.T) {
-	recipe := read()
-	r, err := recipe.LinkToNextStages()
+	f := read()
+	r, err := f.LinkToNextStages()
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,10 +42,8 @@ func Test_complex(t *testing.T) {
 		t.Error("first stage must be params")
 	}
 
-	if first.NextStage.Node.getId() != "config" {
+	if first.NextStage.Stage.getId() != "config" {
 		// TODO BUG FIX
-		t.Errorf("second stage must be config. actual: %s", first.NextStage.Node.getId())
+		t.Errorf("second stage must be config. actual: %s", first.NextStage.Stage.getId())
 	}
 }
-
-

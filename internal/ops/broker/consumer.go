@@ -19,14 +19,14 @@ import (
 )
 
 type nsqConsumer struct {
-	processor eventProcessor
+	processor EventProcessor
 }
 
-func NewNsqConsumer() consumer {
+func NewNsqConsumer() Consumer {
 	return &nsqConsumer{}
 }
 
-func (n *nsqConsumer) consume(processor eventProcessor) {
+func (n *nsqConsumer) consume(processor EventProcessor) {
 	n.processor = processor
 	nsqlookupdHost := os.Getenv("NSQLOOKUPD_HOST")
 	nsqlookupdPort := os.Getenv("NSQLOOKUPD_PORT")

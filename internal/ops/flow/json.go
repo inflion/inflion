@@ -23,17 +23,17 @@ type MetadataJson struct {
 	} `json:"Metadata"`
 }
 
-func Unmarshal(rawJson []byte) (Recipe, error) {
+func Unmarshal(rawJson []byte) (Flow, error) {
 	m := MetadataJson{}
 	err := json.Unmarshal(rawJson, &m)
 	if err != nil {
-		return Recipe{}, err
+		return Flow{}, err
 	}
 
 	if m.Metadata.Format.Version == 1 {
 		v1, err := UnmarshalV1(rawJson)
 		if err != nil {
-			return Recipe{}, err
+			return Flow{}, err
 		}
 		c := Conditions{}
 		for _, cj := range v1.Body.Conditions {
@@ -45,11 +45,11 @@ func Unmarshal(rawJson []byte) (Recipe, error) {
 			s.Stages = append(s.Stages, sj.mustConvert())
 		}
 
-		return Recipe{
+		return Flow{
 			Conditions: c,
 			Stages:     s,
 		}, nil
 	}
 
-	return Recipe{}, fmt.Errorf("json version %d not supported", m.Metadata.Format.Version)
+	return Flow{}, fmt.Errorf("json version %d not supported", m.Metadata.Format.Version)
 }

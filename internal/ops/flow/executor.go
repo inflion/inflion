@@ -14,91 +14,87 @@ import (
 	"log"
 )
 
-type Executor interface {
-	run(r Recipe) (ExecutionResult, error)
-}
-
-type ExecutionResult struct {
+type Result struct {
 	Message string
 	Context ExecutionContext
 }
 
-type DefaultExecutor struct {
-	loader  ActionLoader
-	context ExecutionContext
+type Executor struct {
+	flow   Flow
+	loader ActionLoader
 }
 
-func NewExecutor(loader ActionLoader, context ExecutionContext) Executor {
-	return DefaultExecutor{loader: loader, context: context}
+func NewFlowExecutor(flow Flow, loader ActionLoader) *Executor {
+	return &Executor{flow: flow, loader: loader}
 }
 
-func (e DefaultExecutor) run(r Recipe) (ExecutionResult, error) {
-	c := e.exec(r.Stages.getFirstStage(), e.context)
+func (e Executor) Run(context ExecutionContext) (Result, error) {
+	c := e.exec(e.flow.Stages.getFirstStage(), context)
 
-	return ExecutionResult{
+	return Result{
 		Message: "success", // TODO handle errors. get from context.
 		Context: c,
 	}, nil
 }
 
-func (e DefaultExecutor) exec(node Node, context ExecutionContext) ExecutionContext {
-	if node == nil {
-		log.Println("node is nil")
+func (e Executor) exec(stage Stage, context ExecutionContext) ExecutionContext {
+	if stage == nil { // this is probably the last stage (next stage is not specified)
+		log.Println("stage is nil. end flow execution")
 		return context
 	}
 
-	log.Printf("execute action: node id: %s, context: %+v", node.getId(), context)
-	var nextNode Node
+	log.Printf("execute action: stage id: %s, context: %+v", stage.getId(), context)
 
-	if node.isStage() {
-		if s, ok := node.(Stage); ok {
+	var nextStage Stage
+	if stage.isNormalStage() {
+		if s, ok := stage.(NormalStage); ok {
 			context = e.execStage(s, context)
 
-			if n := s.getNextNode(); n != nil {
-				nextNode = n
+			if n := s.getNextStage().Stage; n != nil {
+				nextStage = n
 			} else {
-				log.Printf("next node is nil in stage at: %s", node.getId())
+				log.Printf("next stage is nil in stage at: %s", stage.getId())
 			}
 		} else {
-			log.Println("node is not a stage. it might be a bug.")
+			log.Println("stage is not a stage. it might be a bug.")
 		}
 	}
 
-	if node.isCondition() {
-		if cond, ok := node.(Condition); ok {
-			nextNode = cond.Evaluate(context)
+	if stage.isConditionStage() {
+		if cond, ok := stage.(ConditionStage); ok {
+			nextStage = cond.Evaluate(context)
 
-			if nextNode == nil {
-				log.Println("node is nil. it might be a bug.")
+			if nextStage == nil {
+				log.Println("stage is nil. it might be a bug.")
 			}
 		} else {
-			log.Println("node is not a condition")
+			log.Println("stage is not a condition")
 		}
 	}
 
-	if nextNode != nil {
-		log.Printf("next node: %s", nextNode.getId())
+	if nextStage != nil {
+		log.Printf("next stage: %s", nextStage.getId())
 	} else {
-		log.Printf("next node is nil")
+		log.Printf("next stage is nil")
 	}
 
-	return e.exec(nextNode, context)
+	return e.exec(nextStage, context)
 }
 
-func (e DefaultExecutor) execStage(stage Stage, context ExecutionContext) ExecutionContext {
-	actionResults := actionResults{}
+func (e Executor) execStage(stage NormalStage, context ExecutionContext) ExecutionContext {
 
 	log.Printf("Run stage %s", stage.Id)
-	log.Printf("Actions: %+v", stage.Actions.Actions)
+	log.Printf("Actions: %+v", stage.Actions)
 
-	for _, a := range stage.Actions.Actions {
+	actionResults := ActionResults{}
+	for _, a := range stage.Actions {
 		ae, err := e.loader.Load(a)
 		if err != nil {
 			log.Println(err)
 			return context
 		}
 
-		ar, err := ae.Run(context, a)
+		ar, err := ae.Run(context)
 		if err != nil {
 			log.Println(err)
 			return context
@@ -106,7 +102,7 @@ func (e DefaultExecutor) execStage(stage Stage, context ExecutionContext) Execut
 		actionResults = actionResults.append(ar)
 	}
 
-	log.Printf("action results: %+v", actionResults.results)
+	log.Printf("action results: %+v", actionResults)
 
 	context = e.addContextValuesFromActionResults(stage, actionResults, context)
 	log.Printf("context: %+v", context.ExecutionFields)
@@ -118,8 +114,8 @@ func (e DefaultExecutor) execStage(stage Stage, context ExecutionContext) Execut
 	})
 }
 
-func (e DefaultExecutor) addContextValuesFromActionResults(stage Stage, results actionResults, context ExecutionContext) ExecutionContext {
-	for _, r := range results.results {
+func (e Executor) addContextValuesFromActionResults(stage NormalStage, results ActionResults, context ExecutionContext) ExecutionContext {
+	for _, r := range results {
 		values := map[string]interface{}{}
 		for k, v := range r.Outputs {
 			values[k] = v
