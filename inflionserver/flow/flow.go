@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"github.com/inflion/inflion/internal/ops/flow"
-	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"
 )
@@ -51,14 +50,18 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		return nil, err
 	}
 
-	ec := action.NewExecutionContext()
-	ec.AddFields("system", action.ExecutionFields{
+	ec := flow.NewExecutionContext()
+	ec.AddFields("system", flow.ExecutionFields{
 		Values: map[string]interface{}{
 			"project": request.Project,
 		},
 	})
 
-	opsflow := flow.NewOpsFlow(store.NewStoreRecipeReader(request.Project, id, f.Store))
+	storedFlow, err := store.NewStoreRecipeReader(request.Project, id, f.Store).Read()
+	if err != nil {
+		return nil, err
+	}
+	opsflow := flow.NewFlowExecutor(storedFlow, flow.NewAggregateActionLoader())
 	result, err := opsflow.Run(ec)
 	if err != nil {
 		return nil, err

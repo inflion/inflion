@@ -82,3 +82,7 @@ func (s StoreFlowReader) Read() (flow.Flow, error) {
 
 	return r, nil
 }
+
+func NewStoreRecipeReader(project string, id uuid.UUID, store Store) StoreFlowReader {
+	return StoreFlowReader{project: project, id: id, store: store}
+}
