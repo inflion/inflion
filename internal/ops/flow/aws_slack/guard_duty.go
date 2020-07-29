@@ -19,6 +19,15 @@ type GuardDutyEvent struct {
 	detail      json.RawMessage
 }
 
+type guardDutySeverity string
+
+const (
+	guardDutySeverityLOW     guardDutySeverity = "LOW"
+	guardDutySeverityMIDDLE  guardDutySeverity = "MIDDLE"
+	guardDutySeverityHIGH    guardDutySeverity = "HIGH"
+	guardDutySeverityUNKNOWN guardDutySeverity = "UNKNOWN"
+)
+
 func (g *GuardDutyEvent) SetRawDetail(detail json.RawMessage) {
 	g.detail = detail
 }
@@ -29,26 +38,26 @@ func (g *GuardDutyEvent) title() string {
 
 func (g *GuardDutyEvent) statusColor() string {
 	switch g.severityLevel() {
-	case "LOW":
+	case guardDutySeverityLOW:
 		return "#C3FFB9"
-	case "MIDDLE":
+	case guardDutySeverityMIDDLE:
 		return "#FFFF00"
-	case "HIGH":
+	case guardDutySeverityHIGH:
 		return "#FF0000"
 	}
 	return "#CCCCCC"
 }
 
-func (g *GuardDutyEvent) severityLevel() string {
+func (g *GuardDutyEvent) severityLevel() guardDutySeverity {
 	switch severity := g.Severity; {
 	case 1.0 < severity && severity < 3.9:
-		return "LOW"
+		return guardDutySeverityLOW
 	case 4.0 < severity && severity < 6.9:
-		return "MIDDLE"
+		return guardDutySeverityMIDDLE
 	case 7.0 < severity && severity < 8.9:
-		return "HIGH"
+		return guardDutySeverityHIGH
 	}
-	return "UNKNOWN"
+	return guardDutySeverityUNKNOWN
 }
 
 func (g *GuardDutyEvent) authorName() string {
@@ -61,7 +70,7 @@ func (g *GuardDutyEvent) authorLink() string {
 
 func (g *GuardDutyEvent) fields() []*slack.Field {
 	return []*slack.Field{
-		{Title: "Severity Level", Value: g.severityLevel()},
+		{Title: "Severity Level", Value: string(g.severityLevel())},
 		{Title: "Type", Value: g.Type},
 		{Title: "Description", Value: g.Description},
 	}
@@ -74,12 +83,12 @@ func (g *GuardDutyEvent) Detail() string {
 func (g *GuardDutyEvent) addMention(attachment slack.Attachment, params map[string]string) slack.Attachment {
 	log.Print(g.severityLevel())
 	switch g.severityLevel() {
-	case "LOW":
+	case guardDutySeverityLOW:
 		return attachment
-	case "MEDIUM":
+	case guardDutySeverityMIDDLE:
 		attachment.Text = p("<!here>")
 		return attachment
-	case "HIGH":
+	case guardDutySeverityHIGH:
 		if user, ok := params["critical_mention"]; ok {
 			attachment.Text = p(fmt.Sprintf("<!channel> <@%s>", user))
 			return attachment
