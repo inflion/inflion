@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	pb "github.com/inflion/inflion/inflionserver/event/eventpb"
+	pb "github.com/inflion/inflion/inflionserver/byteevent/byteeventpb"
 	"google.golang.org/grpc"
 	"log"
 	"os"
@@ -32,12 +32,15 @@ func handleRequest(ctx context.Context, event events.CloudWatchEvent) (LambdaRes
 	}
 	defer conn.Close()
 
-	client := pb.NewEventClient(conn)
+	client := pb.NewByteEventClient(conn)
 
 	eventJson, err := json.Marshal(event)
 	if err != nil {
 		return LambdaResponse{Message: "failed marshal json"}, err
 	}
+
+	eventJsonForLog, _ := json.MarshalIndent(event, "", "  ")
+	log.Printf("EVENT: %s", eventJsonForLog)
 
 	ie := InflionEvent{
 		Project: "sandbox",
@@ -49,8 +52,8 @@ func handleRequest(ctx context.Context, event events.CloudWatchEvent) (LambdaRes
 		return LambdaResponse{Message: "failed marshal inflion json"}, err
 	}
 
-	message := &pb.PutEventRequest{
-		Event: string(ieJson),
+	message := &pb.PutByteEventRequest{
+		Event: ieJson,
 	}
 
 	res, err := client.Put(ctx, message)
