@@ -57,7 +57,11 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		},
 	})
 
-	opsflow := flow.NewOpsFlow(store.NewStoreRecipeReader(request.Project, id, f.Store))
+	storedFlow, err := store.NewStoreRecipeReader(request.Project, id, f.Store).Read()
+	if err != nil {
+		return nil, err
+	}
+	opsflow := flow.NewFlowExecutor(storedFlow, flow.NewAggregateActionLoader())
 	result, err := opsflow.Run(ec)
 	if err != nil {
 		return nil, err

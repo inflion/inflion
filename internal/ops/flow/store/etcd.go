@@ -19,8 +19,8 @@ type EtcdBackedFlowStore struct {
 	client *clientv3.Client
 }
 
-func (e EtcdBackedFlowStore) List(project string) ([]Flow, error) {
-	var flows []Flow
+func (e EtcdBackedFlowStore) List(project string) ([]FlowData, error) {
+	var flows []FlowData
 	key := e.createKeyPrefix(project)
 	resp, err := e.connect().Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
@@ -31,7 +31,7 @@ func (e EtcdBackedFlowStore) List(project string) ([]Flow, error) {
 	log.Printf("%+v", resp.Kvs)
 
 	for _, v := range resp.Kvs {
-		flows = append(flows, Flow{
+		flows = append(flows, FlowData{
 			Project: project,
 			Id:      uuid.MustParse(strings.Replace(string(v.Key), e.createKeyPrefix(project), "", 1)),
 			Body:    string(v.Value),

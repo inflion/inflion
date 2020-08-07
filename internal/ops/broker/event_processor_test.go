@@ -21,7 +21,7 @@ import (
 type mockEventMatcher struct {
 }
 
-func (m mockEventMatcher) GetRulesMatchesTo(event monitor.MonitoringEvent) ([]rule.Rule, error) {
+func (m mockEventMatcher) GetRulesMatchesTo(_ monitor.MonitoringEvent) ([]rule.Rule, error) {
 	return []rule.Rule{
 		{
 			RuleName: "rule1",
@@ -44,7 +44,7 @@ type mockStore struct {
 	store.Store
 }
 
-func (e mockStore) Get(request store.FlowGetRequest) (store.FlowGetResponse, error) {
+func (e mockStore) Get(_ store.FlowGetRequest) (store.FlowGetResponse, error) {
 	jsonForTest := "../flow/sample_flow.json"
 
 	bytes, err := ioutil.ReadFile(jsonForTest)

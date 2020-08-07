@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/inflion/inflion/internal/ops/flow"
+	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/robfig/cron/v3"
 	"log"
@@ -33,8 +34,8 @@ func NewFlowJobRunner(flowId uuid.UUID, project string, store store.Store) JobRu
 }
 
 func (f FlowJobRunner) Run() error {
-	ec := flow.NewExecutionContext()
-	ec.AddFields("system", flow.ExecutionFields{
+	ec := action.NewExecutionContext()
+	ec.AddFields("system", action.ExecutionFields{
 		Values: map[string]interface{}{
 			"project": f.project,
 		},

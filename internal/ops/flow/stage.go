@@ -11,25 +11,25 @@
 package flow
 
 type Stages struct {
-	Stages []Stage
+	Stages []NormalStage
 }
 
-type Stage struct {
+type NormalStage struct {
 	Id        string
 	Name      string
 	NextStage NextStage
-	Actions   Actions
+	Actions   []Action
 }
 
-func (s Stages) get(index int) Stage {
+func (s Stages) get(index int) NormalStage {
 	if index < len(s.Stages) {
 		return s.Stages[index]
 	}
 
-	return Stage{}
+	return NormalStage{}
 }
 
-func (s Stages) replaceById(id string, stage Stage) Stages {
+func (s Stages) replaceById(id string, stage NormalStage) Stages {
 	newStages := Stages{s.Stages}
 	for i, elm := range s.Stages {
 		if elm.Id == id {
@@ -41,51 +41,46 @@ func (s Stages) replaceById(id string, stage Stage) Stages {
 	return newStages
 }
 
-func (s Stages) getFirstStage() Stage {
+func (s Stages) getFirstStage() NormalStage {
 	return s.get(0)
 }
 
-func (s Stages) getById(id string) (Stage, bool) {
+func (s Stages) getById(id string) (NormalStage, bool) {
 	for _, s := range s.Stages {
 		if s.Id == id {
 			return s, true
 		}
 	}
-	return Stage{}, false
+	return NormalStage{}, false
 }
 
-func (s Stage) getId() string {
+func (s NormalStage) getId() string {
 	return s.Id
 }
 
-func (s Stage) isEnd() bool {
-	return s.Id == "__end__"
+func (s NormalStage) isEnd() bool {
+	return s.Id == endStageId
 }
 
-func (s Stage) isEmpty() bool {
+func (s NormalStage) isEmpty() bool {
 	return s.Id == ""
 }
 
-func (s Stage) isStage() bool {
+func (s NormalStage) isNormalStage() bool {
 	return true
 }
 
-func (s Stage) isCondition() bool {
+func (s NormalStage) isConditionStage() bool {
 	return false
 }
 
-func (s Stage) getNextStage() NextStage {
+func (s NormalStage) getNextStage() NextStage {
 	return s.NextStage
 }
 
-func (s Stage) getNextNode() Node {
-	return s.NextStage.Node
-}
-
-func (s Stage) wasNextStageResolved() bool {
+func (s NormalStage) wasNextStageResolved() bool {
 	if s.NextStage.isEnd() {
 		return true
 	}
-	return s.NextStage.Node != nil
+	return s.NextStage.Stage != nil
 }
-

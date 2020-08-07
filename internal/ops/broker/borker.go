@@ -16,19 +16,19 @@ import (
 
 const topicName = "monitoring-events"
 
-type consumer interface {
-	consume(processor eventProcessor)
+type Consumer interface {
+	consume(processor EventProcessor)
 }
 
 // Broker is to handle monitoring events.
 type Broker struct {
-	consumer consumer
-	processor eventProcessor
+	consumer  Consumer
+	processor EventProcessor
 }
 
-func NewBroker(consumer consumer, processor eventProcessor) Broker {
+func NewBroker(consumer Consumer, processor EventProcessor) Broker {
 	return Broker{
-		consumer: consumer,
+		consumer:  consumer,
 		processor: processor,
 	}
 }

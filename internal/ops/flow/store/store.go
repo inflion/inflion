@@ -5,7 +5,7 @@ import (
 	"github.com/inflion/inflion/internal/ops/flow"
 )
 
-type Flow struct {
+type FlowData struct {
 	Project string
 	Id      uuid.UUID
 	Body    string
@@ -53,36 +53,36 @@ type FlowDeleteResponse struct {
 }
 
 type Store interface {
-	List(project string) ([]Flow, error)
+	List(project string) ([]FlowData, error)
 	Create(request FlowCreateRequest) (FlowCreateResponse, error)
 	Get(request FlowGetRequest) (FlowGetResponse, error)
 	Update(request FlowUpdateRequest) error
 	Delete(request FlowDeleteRequest) error
 }
 
-type StoreRecipeReader struct {
+type StoreFlowReader struct {
 	project string
 	id      FlowId
 	store   Store
 }
 
-func (s StoreRecipeReader) Read() (flow.Recipe, error) {
+func (s StoreFlowReader) Read() (flow.Flow, error) {
 	f, err := s.store.Get(FlowGetRequest{
 		Project: s.project,
 		Id:      s.id,
 	})
 	if err != nil {
-		return flow.Recipe{}, err
+		return flow.Flow{}, err
 	}
 
 	r, err := flow.Unmarshal([]byte(f.Body))
 	if err != nil {
-		return flow.Recipe{}, err
+		return flow.Flow{}, err
 	}
 
 	return r, nil
 }
 
-func NewStoreRecipeReader(project string, id uuid.UUID, store Store) flow.RecipeReader {
-	return StoreRecipeReader{project: project, id: id, store: store}
+func NewStoreRecipeReader(project string, id uuid.UUID, store Store) StoreFlowReader {
+	return StoreFlowReader{project: project, id: id, store: store}
 }
