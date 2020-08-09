@@ -11,6 +11,7 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 	"testing"
 )
@@ -19,7 +20,7 @@ type MockActionExecutor struct {
 	action Action
 }
 
-func (m MockActionExecutor) Run(_ ExecutionContext) (ActionResult, error) {
+func (m MockActionExecutor) Run(_ context.ExecutionContext) (ActionResult, error) {
 	log.Println("exec mock action")
 
 	return ActionResult{
@@ -46,9 +47,9 @@ func Test_last_status_should_be_success(t *testing.T) {
 		t.Error(err)
 	}
 
-	result, _ := NewFlowExecutor(r, NewAggregateActionLoader()).Run(NewExecutionContext())
+	result, _ := NewFlowExecutor(r, NewAggregateActionLoader()).Run(context.NewExecutionContext())
 
-	got := result.Context.GetValueByPath(NewPath("last.status"))
+	got := result.Context.GetValueByPath(context.NewPath("last.status"))
 	want := "success"
 	if got != want {
 		t.Errorf("got %s want %s", got, want)
@@ -63,9 +64,9 @@ func Test_stage1_result_should_have_message(t *testing.T) {
 		t.Error(err)
 	}
 
-	result, _ := NewFlowExecutor(linkedFlow, MockActionLoader{}).Run(NewExecutionContext())
+	result, _ := NewFlowExecutor(linkedFlow, MockActionLoader{}).Run(context.NewExecutionContext())
 
-	got := result.Context.GetValueByPath(NewPath("stage1-name.output1-key"))
+	got := result.Context.GetValueByPath(context.NewPath("stage1-name.output1-key"))
 	want := "output1-value"
 	if got != want {
 		t.Errorf("got %s want %s", got, want)

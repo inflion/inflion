@@ -1,11 +1,14 @@
-package aws_slack
+package slack_notification
 
 import (
 	"encoding/json"
 	"github.com/ashwanthkumar/slack-go-webhook"
+	"github.com/aws/aws-lambda-go/events"
 )
 
 type ConfigEvent struct {
+	detail              json.RawMessage
+	accountMapper       *AwsAccountMapper
 	Title               string                 `json:"messageType"`
 	ResourceId          string                 `json:"resourceId"`
 	Region              string                 `json:"awsRegion"`
@@ -13,7 +16,15 @@ type ConfigEvent struct {
 	ResourceType        string                 `json:"resourceType"`
 	NewEvaluationResult map[string]interface{} `json:"newEvaluationResult"`
 	Account             string                 `json:"account"`
-	detail              json.RawMessage
+}
+
+func newConfigEvent(event events.CloudWatchEvent, accountMapper *AwsAccountMapper) (*ConfigEvent, error) {
+	e := &ConfigEvent{detail: event.Detail, accountMapper: accountMapper}
+	err := json.Unmarshal(event.Detail, e)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 func (c *ConfigEvent) title() string {
@@ -59,6 +70,7 @@ func (c *ConfigEvent) authorLink() string {
 
 func (c *ConfigEvent) fields() []*slack.Field {
 	return []*slack.Field{
+		{Title: "Account", Value: c.accountMapper.awsAccount()},
 		{Title: "Status", Value: c.getComplianceType()},
 		{Title: "RuleName", Value: c.ConfigRuleName},
 		{Title: "ResourceId", Value: c.ResourceId},
@@ -66,11 +78,11 @@ func (c *ConfigEvent) fields() []*slack.Field {
 	}
 }
 
-func (c *ConfigEvent) Detail() string {
-	return string(c.detail)
+func (c *ConfigEvent) Detail() json.RawMessage {
+	return c.detail
 }
 
-func (c *ConfigEvent) Ignore(_ map[string]string) bool {
+func (c *ConfigEvent) Ignore(_ string) bool {
 	return false
 }
 

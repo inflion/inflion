@@ -12,6 +12,7 @@ package flow
 
 import (
 	"encoding/json"
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"io/ioutil"
 	"testing"
@@ -35,14 +36,14 @@ func TestFlow(t *testing.T) {
 
 	event.RawBody = bytes
 
-	ec := NewExecutionContext()
-	ec.AddFields("project", ExecutionFields{
+	ec := context.NewExecutionContext()
+	ec.AddFields("project", context.ExecutionFields{
 		Values: map[string]interface{}{"id": event.Project},
 	})
-	ec.AddFields("event", ExecutionFields{
+	ec.AddFields("event", context.ExecutionFields{
 		Values: event.Body,
 	})
-	ec.AddFields("raw-event", ExecutionFields{
+	ec.AddFields("raw-event", context.ExecutionFields{
 		Values: map[string]interface{}{"json": event.RawBody},
 	})
 	fe := NewFlowExecutor(flow, NewAggregateActionLoader())

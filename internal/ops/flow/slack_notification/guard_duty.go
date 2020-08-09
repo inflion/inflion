@@ -1,21 +1,32 @@
-package aws_slack
+package slack_notification
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/ashwanthkumar/slack-go-webhook"
+	"github.com/aws/aws-lambda-go/events"
 	"strings"
 )
 
 type GuardDutyEvent struct {
-	AccountId   string          `json:"accountId"`
-	Region      string          `json:"region"`
-	Type        string          `json:"type"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	Severity    float32         `json:"severity"`
-	Service     json.RawMessage `json:"service"`
-	detail      json.RawMessage
+	detail        json.RawMessage
+	accountMapper *AwsAccountMapper
+	AccountId     string          `json:"accountId"`
+	Region        string          `json:"region"`
+	Type          string          `json:"type"`
+	Title         string          `json:"title"`
+	Description   string          `json:"description"`
+	Severity      float32         `json:"severity"`
+	Service       json.RawMessage `json:"service"`
+}
+
+func NewGuardDutyEvent(event events.CloudWatchEvent, accountMapper *AwsAccountMapper) (*GuardDutyEvent, error) {
+	e := &GuardDutyEvent{detail: event.Detail, accountMapper: accountMapper}
+	err := json.Unmarshal(event.Detail, e)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 type guardDutySeverity string
@@ -26,10 +37,6 @@ const (
 	guardDutySeverityHIGH    guardDutySeverity = "HIGH"
 	guardDutySeverityUNKNOWN guardDutySeverity = "UNKNOWN"
 )
-
-func (g *GuardDutyEvent) SetRawDetail(detail json.RawMessage) {
-	g.detail = detail
-}
 
 func (g *GuardDutyEvent) title() string {
 	return g.Title
@@ -69,14 +76,15 @@ func (g *GuardDutyEvent) authorLink() string {
 
 func (g *GuardDutyEvent) fields() []*slack.Field {
 	return []*slack.Field{
+		{Title: "Account", Value: g.accountMapper.awsAccount()},
 		{Title: "Severity Level", Value: string(g.severityLevel())},
 		{Title: "Type", Value: g.Type},
 		{Title: "Description", Value: g.Description},
 	}
 }
 
-func (g *GuardDutyEvent) Detail() string {
-	return string(g.detail)
+func (g *GuardDutyEvent) Detail() json.RawMessage {
+	return g.detail
 }
 
 func (g *GuardDutyEvent) addMention(attachment slack.Attachment, params map[string]string) slack.Attachment {
@@ -97,18 +105,13 @@ func (g *GuardDutyEvent) addMention(attachment slack.Attachment, params map[stri
 	return attachment
 }
 
-func (g *GuardDutyEvent) Ignore(params map[string]string) bool {
-	ignore, ok := params["ignore_ip_addresses"]
-	if !ok {
-		return false
-	}
-
+func (g *GuardDutyEvent) Ignore(ignoreIpAddresses string) bool {
 	serviceJson, err := json.Marshal(g.Service)
 	if err != nil {
 		return false
 	}
 
-	return newIgnoreList(ignore).contain(string(serviceJson))
+	return newIgnoreList(ignoreIpAddresses).contain(string(serviceJson))
 }
 
 type ignoreList struct {

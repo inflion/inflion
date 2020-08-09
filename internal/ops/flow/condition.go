@@ -11,6 +11,7 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 )
 
@@ -71,9 +72,9 @@ func (c ConditionStage) isConditionStage() bool {
 	return true
 }
 
-func (c ConditionStage) Evaluate(context ExecutionContext) Stage {
+func (c ConditionStage) Evaluate(ctx context.ExecutionContext) Stage {
 	ex := c.Expressions[0]
-	value := context.GetValueByPath(Path{Path: ex.Input})
+	value := ctx.GetValueByPath(context.Path{Path: ex.Input})
 
 	log.Printf("test: %s", value)
 

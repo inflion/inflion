@@ -11,12 +11,13 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 )
 
 type Result struct {
 	Message string
-	Context ExecutionContext
+	Context context.ExecutionContext
 }
 
 type Executor struct {
@@ -28,7 +29,7 @@ func NewFlowExecutor(flow Flow, loader ActionLoader) *Executor {
 	return &Executor{flow: flow, loader: loader}
 }
 
-func (e Executor) Run(context ExecutionContext) (Result, error) {
+func (e Executor) Run(context context.ExecutionContext) (Result, error) {
 	c := e.exec(e.flow.Stages.getFirstStage(), context)
 
 	return Result{
@@ -37,7 +38,7 @@ func (e Executor) Run(context ExecutionContext) (Result, error) {
 	}, nil
 }
 
-func (e Executor) exec(stage Stage, context ExecutionContext) ExecutionContext {
+func (e Executor) exec(stage Stage, context context.ExecutionContext) context.ExecutionContext {
 	if stage == nil { // this is probably the last stage (next stage is not specified)
 		log.Println("stage is nil. end flow execution")
 		return context
@@ -81,7 +82,7 @@ func (e Executor) exec(stage Stage, context ExecutionContext) ExecutionContext {
 	return e.exec(nextStage, context)
 }
 
-func (e Executor) execStage(stage NormalStage, context ExecutionContext) ExecutionContext {
+func (e Executor) execStage(stage NormalStage, ctx context.ExecutionContext) context.ExecutionContext {
 
 	log.Printf("Run stage %s", stage.Id)
 	log.Printf("Actions: %+v", stage.Actions)
@@ -91,39 +92,39 @@ func (e Executor) execStage(stage NormalStage, context ExecutionContext) Executi
 		ae, err := e.loader.Load(a)
 		if err != nil {
 			log.Println(err)
-			return context
+			return ctx
 		}
 
-		ar, err := ae.Run(context)
+		ar, err := ae.Run(ctx)
 		if err != nil {
 			log.Println(err)
-			return context
+			return ctx
 		}
 		actionResults = actionResults.append(ar)
 	}
 
 	log.Printf("action results: %+v", actionResults)
 
-	context = e.addContextValuesFromActionResults(stage, actionResults, context)
-	log.Printf("context: %+v", context.ExecutionFields)
+	ctx = e.addContextValuesFromActionResults(stage, actionResults, ctx)
+	log.Printf("ctx: %+v", ctx.ExecutionFields)
 
-	return context.AddFields("last", ExecutionFields{
+	return ctx.AddFields("last", context.ExecutionFields{
 		Values: map[string]interface{}{
 			"status": actionResults.getExitMessage(),
 		},
 	})
 }
 
-func (e Executor) addContextValuesFromActionResults(stage NormalStage, results ActionResults, context ExecutionContext) ExecutionContext {
+func (e Executor) addContextValuesFromActionResults(stage NormalStage, results ActionResults, ctx context.ExecutionContext) context.ExecutionContext {
 	for _, r := range results {
 		values := map[string]interface{}{}
 		for k, v := range r.Outputs {
 			values[k] = v
 		}
-		fields := ExecutionFields{
+		fields := context.ExecutionFields{
 			Values: values,
 		}
-		context = context.AddFields(stage.Name, fields)
+		ctx = ctx.AddFields(stage.Name, fields)
 	}
-	return context
+	return ctx
 }

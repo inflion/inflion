@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 )
 
@@ -8,7 +9,7 @@ type ParamsActionExecutor struct {
 	action Action
 }
 
-func (p ParamsActionExecutor) Run(ExecutionContext) (ActionResult, error) {
+func (p ParamsActionExecutor) Run(context.ExecutionContext) (ActionResult, error) {
 	log.Printf("log: %s", p.action.Params)
 
 	outputs := map[string]string{}

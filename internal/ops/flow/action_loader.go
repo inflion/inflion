@@ -45,7 +45,7 @@ type EmbeddedActionLoader struct{}
 
 func (e EmbeddedActionLoader) Load(action Action) (ActionExecutor, error) {
 	switch action.Type {
-	case "params":
+	case "Params":
 		return ParamsActionExecutor{action: action}, nil
 	case "config":
 		return ConfigActionExecutor{action: action}, nil
@@ -55,12 +55,13 @@ func (e EmbeddedActionLoader) Load(action Action) (ActionExecutor, error) {
 		return InstanceActionExecutor{action: action}, nil
 	case "instance-data":
 		return InstanceDataActionExecutor{action: action}, nil
-	case "aws-slack":
-		return AwsSlackNotificationActionExecutor{action: action}, nil
 	case "logging":
 		return LoggingActionExecutor{action: action}, nil
 	case "pagerduty":
 		return PagerDutyActionExecutor{action: action}, nil
+	case "notification":
+		return NewSlackNotificationActionExecutor(action)
 	}
+
 	return NullActionExecutor{}, errors.New("no embedded action found at " + action.Type)
 }

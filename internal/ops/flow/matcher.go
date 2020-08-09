@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 )
 
@@ -8,7 +9,7 @@ type MatcherActionExecutor struct {
 	action Action
 }
 
-func (m MatcherActionExecutor) Run(_ ExecutionContext) (ActionResult, error) {
+func (m MatcherActionExecutor) Run(_ context.ExecutionContext) (ActionResult, error) {
 	log.Println("execute action: " + m.action.Type)
 	return ActionResult{
 		Action: m.action,
