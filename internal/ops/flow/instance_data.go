@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"github.com/inflion/inflion/internal/paws"
 	"log"
 	"strings"
@@ -10,14 +11,14 @@ type InstanceDataActionExecutor struct {
 	action Action
 }
 
-func (i InstanceDataActionExecutor) Run(ec ExecutionContext) (ActionResult, error) {
+func (i InstanceDataActionExecutor) Run(ec context.ExecutionContext) (ActionResult, error) {
 	log.Println("execute action: " + i.action.Type)
 	log.Printf("action params: %+v", i.action.Params)
 
 	a := paws.AwsAccount{
-		AccountId:  ec.GetValueByPath(NewPath("config.account_id")).(string),
-		RoleName:   ec.GetValueByPath(NewPath("config.assume_role")).(string),
-		ExternalId: ec.GetValueByPath(NewPath("config.external_id")).(string),
+		AccountId:  ec.GetValueByPath(context.NewPath("config.account_id")).(string),
+		RoleName:   ec.GetValueByPath(context.NewPath("config.assume_role")).(string),
+		ExternalId: ec.GetValueByPath(context.NewPath("config.external_id")).(string),
 	}
 	p, err := paws.New(a, "ap-northeast-1")
 	if err != nil {

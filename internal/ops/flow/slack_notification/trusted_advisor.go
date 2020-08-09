@@ -1,32 +1,34 @@
-package aws_slack
+package slack_notification
 
 import (
 	"encoding/json"
 	"github.com/ashwanthkumar/slack-go-webhook"
+	"github.com/aws/aws-lambda-go/events"
 )
 
 type TrustedAdvisorEvent struct {
+	detail          json.RawMessage
+	accountMapper   *AwsAccountMapper
 	CheckName       string            `json:"check-name"`
 	CheckItemDetail map[string]string `json:"check-item-detail"`
 	Status          string            `json:"status"`
 	ResourceId      string            `json:"resource_id"`
-	detail          json.RawMessage
 }
 
-func (t *TrustedAdvisorEvent) SetRawDetail(detail json.RawMessage) {
-	t.detail = detail
+func newTrustedAdvisorEvent(event events.CloudWatchEvent, accountMapper *AwsAccountMapper) (*TrustedAdvisorEvent, error) {
+	e := &TrustedAdvisorEvent{detail: event.Detail, accountMapper: accountMapper}
+	err := json.Unmarshal(event.Detail, e)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
 }
 
 func (t *TrustedAdvisorEvent) title() string {
 	return t.CheckName
 }
 
-func (t *TrustedAdvisorEvent) Ignore(params map[string]string) bool {
-	ignoreTitleList, ok := params["ignore_title"]
-	if !ok {
-		return false
-	}
-
+func (t *TrustedAdvisorEvent) Ignore(ignoreTitleList string) bool {
 	return newIgnoreList(ignoreTitleList).has(t.CheckName)
 }
 
@@ -54,13 +56,14 @@ func (t *TrustedAdvisorEvent) statusColor() string {
 
 func (t *TrustedAdvisorEvent) fields() []*slack.Field {
 	return []*slack.Field{
+		{Title: "Account", Value: t.accountMapper.awsAccount()},
 		{Title: "Status", Value: t.Status},
 		{Title: "Resource Id", Value: t.ResourceId},
 	}
 }
 
-func (t *TrustedAdvisorEvent) Detail() string {
-	return string(t.detail)
+func (t *TrustedAdvisorEvent) Detail() json.RawMessage {
+	return t.detail
 }
 
 func (t *TrustedAdvisorEvent) addMention(attachment slack.Attachment, _ map[string]string) slack.Attachment {

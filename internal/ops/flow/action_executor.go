@@ -10,6 +10,8 @@
 
 package flow
 
+import "github.com/inflion/inflion/internal/ops/flow/context"
+
 type ActionExecutor interface {
-	Run(context ExecutionContext) (ActionResult, error)
+	Run(context context.ExecutionContext) (ActionResult, error)
 }

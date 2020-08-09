@@ -3,6 +3,7 @@ package flow
 import (
 	"fmt"
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"log"
 	"strings"
 	"time"
@@ -12,7 +13,7 @@ type PagerDutyActionExecutor struct {
 	action Action
 }
 
-func (p PagerDutyActionExecutor) Run(ec ExecutionContext) (ActionResult, error) {
+func (p PagerDutyActionExecutor) Run(ec context.ExecutionContext) (ActionResult, error) {
 	log.Println("execute action: " + p.action.Type)
 	log.Printf("action params: %+v", p.action.Params)
 
