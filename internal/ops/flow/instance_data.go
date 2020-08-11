@@ -16,9 +16,9 @@ func (i InstanceDataActionExecutor) Run(ec context.ExecutionContext) (ActionResu
 	log.Printf("action params: %+v", i.action.Params)
 
 	a := paws.AwsAccount{
-		AccountId:  ec.GetValueByPath(context.NewPath("config.account_id")).(string),
-		RoleName:   ec.GetValueByPath(context.NewPath("config.assume_role")).(string),
-		ExternalId: ec.GetValueByPath(context.NewPath("config.external_id")).(string),
+		AccountId:  ec.GetFiledByPath("config.account_id"),
+		RoleName:   ec.GetFiledByPath("config.assume_role"),
+		ExternalId: ec.GetFiledByPath("config.external_id"),
 	}
 	p, err := paws.New(a, "ap-northeast-1")
 	if err != nil {

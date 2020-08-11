@@ -18,9 +18,9 @@ func (i InstanceActionExecutor) Run(ec context.ExecutionContext) (ActionResult, 
 	actionType := i.action.Params["action"]
 
 	a := paws.AwsAccount{
-		AccountId:  ec.GetValueByPath(context.NewPath("config.account_id")).(string),
-		RoleName:   ec.GetValueByPath(context.NewPath("config.assume_role")).(string),
-		ExternalId: ec.GetValueByPath(context.NewPath("config.external_id")).(string),
+		AccountId:  ec.GetFiledByPath("config.account_id"),
+		RoleName:   ec.GetFiledByPath("config.assume_role"),
+		ExternalId: ec.GetFiledByPath("config.external_id"),
 	}
 	p, err := paws.New(a, "ap-northeast-1")
 	if err != nil {
@@ -29,7 +29,7 @@ func (i InstanceActionExecutor) Run(ec context.ExecutionContext) (ActionResult, 
 
 	instanceIds := paws.InstanceIds{}
 
-	t := ec.GetValueByPath(context.NewPath(i.action.Params["targets"])).(string)
+	t := ec.GetFiledByPath("targets")
 
 	for _, id := range strings.Split(t, ",") {
 		instanceIds = append(instanceIds, &id)

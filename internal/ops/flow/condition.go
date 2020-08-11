@@ -74,7 +74,7 @@ func (c ConditionStage) isConditionStage() bool {
 
 func (c ConditionStage) Evaluate(ctx context.ExecutionContext) Stage {
 	ex := c.Expressions[0]
-	value := ctx.GetValueByPath(context.Path{Path: ex.Input})
+	value := ctx.GetFiledByPath(ex.Input)
 
 	log.Printf("test: %s", value)
 

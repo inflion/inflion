@@ -8,7 +8,7 @@ import (
 )
 
 func NewSlackNotificationEvent(notificationType string, actionParams map[string]string, ctx context.ExecutionContext) (SlackNotificationEvent, error) {
-	byteEvent := ctx.ExecutionFields.Fields["raw-event"].Values["json"].(json.RawMessage)
+	byteEvent := ctx.Event().RawBody()
 
 	switch notificationType {
 	case "log":

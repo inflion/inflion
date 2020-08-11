@@ -13,7 +13,7 @@ type PagerDutyActionExecutor struct {
 	action Action
 }
 
-func (p PagerDutyActionExecutor) Run(ec context.ExecutionContext) (ActionResult, error) {
+func (p PagerDutyActionExecutor) Run(ctx context.ExecutionContext) (ActionResult, error) {
 	log.Println("execute action: " + p.action.Type)
 	log.Printf("action params: %+v", p.action.Params)
 
@@ -30,7 +30,7 @@ func (p PagerDutyActionExecutor) Run(ec context.ExecutionContext) (ActionResult,
 	}
 
 	source := "unknown"
-	s, ok := ec.ExecutionFields.Fields["event"].Values["source"]
+	s, ok := ctx.Event().GetValue("source")
 	if ok {
 		source = fmt.Sprintf("%v", s)
 	}
@@ -45,7 +45,7 @@ func (p PagerDutyActionExecutor) Run(ec context.ExecutionContext) (ActionResult,
 			Source:    source,
 			Severity:  "critical",
 			Timestamp: time.Now().Format(time.RFC3339),
-			Details:   ec.ExecutionFields.Fields["event"],
+			Details:   ctx.Event().RawBody(),
 		},
 	}
 

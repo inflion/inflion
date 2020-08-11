@@ -7,6 +7,7 @@ import (
 	"github.com/ashwanthkumar/slack-go-webhook"
 	"github.com/inflion/inflion/internal/ops/flow/context"
 	"github.com/olivere/elastic/v7"
+	"log"
 )
 
 type LogEvent struct {
@@ -24,16 +25,17 @@ func NewLogEvent(byteEvent []byte, actionParams map[string]string, ctx context.E
 	if err != nil {
 		return nil, errors.New("unknown log event")
 	}
-	i, ok := ctx.ExecutionFields.Fields["index_pattern"].Values["json"].(string)
-	if !ok {
+	i := ctx.GetFiledByPath("index_pattern")
+	log.Print(i)
+	if i == "" {
 		return nil, errors.New("execution fields \"index_pattern\" not found")
 	}
-	t, ok := ctx.ExecutionFields.Fields["term"].Values["json"].(string)
-	if !ok {
+	t := ctx.GetFiledByPath("index_pattern")
+	if t == "" {
 		return nil, errors.New("execution fields \"term\" not found")
 	}
-	f, ok := ctx.ExecutionFields.Fields["field_name"].Values["json"].(string)
-	if !ok {
+	f := ctx.GetFiledByPath("field_name")
+	if f == "" {
 		return nil, errors.New("execution fields \"field_name\" not found")
 	}
 	h, ok := actionParams["kibana_host"]
@@ -41,7 +43,14 @@ func NewLogEvent(byteEvent []byte, actionParams map[string]string, ctx context.E
 		h = ""
 	}
 
-	return &LogEvent{event: e, detail: byteEvent, term: t, indexPattern: i, fieldName: f, kibanaHost: h}, nil
+	return &LogEvent{
+		event:        e,
+		detail:       byteEvent,
+		term:         t,
+		indexPattern: i,
+		fieldName:    f,
+		kibanaHost:   h,
+	}, nil
 }
 
 func (c *LogEvent) title() string {

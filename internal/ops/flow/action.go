@@ -41,7 +41,3 @@ func (a ActionResults) getExitMessage() string {
 
 	return "fail"
 }
-
-func (a ActionResults) append(result ActionResult) ActionResults {
-	return append(a, result)
-}
