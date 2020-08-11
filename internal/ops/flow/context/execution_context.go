@@ -1,85 +1,63 @@
 package context
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/inflion/inflion/internal/ops/event"
+	"github.com/jeremywohl/flatten"
+)
 
 type ExecutionContext struct {
-	ExecutionFields ExecutionFields
+	fields map[string]interface{}
+	event  event.InflionEvent
+}
+
+func (c ExecutionContext) Fields() map[string]interface{} {
+	return c.fields
+}
+
+func (c ExecutionContext) Event() event.InflionEvent {
+	return c.event
 }
 
 func NewExecutionContext() ExecutionContext {
 	return ExecutionContext{
-		ExecutionFields: ExecutionFields{
-			Fields: map[string]ExecutionFields{},
-			Values: map[string]interface{}{},
-		},
+		fields: map[string]interface{}{},
+		event:  event.InflionEvent{},
 	}
 }
-
-func NewExecutionContextWithFields(fields map[string]ExecutionFields) ExecutionContext {
+func NewExecutionContextWithEvent(event *event.InflionEvent) ExecutionContext {
 	return ExecutionContext{
-		ExecutionFields: ExecutionFields{
-			Fields: fields,
-			Values: map[string]interface{}{},
-		},
+		fields: map[string]interface{}{},
+		event:  *event,
 	}
 }
 
-func (e ExecutionContext) AddFields(key string, fields ExecutionFields) ExecutionContext {
-	e.ExecutionFields.Fields[key] = fields
-	return e
+func (c ExecutionContext) AddField(key string, field interface{}) {
+	c.fields[key] = field
 }
 
-func (e ExecutionContext) GetValueByPath(path Path) interface{} {
-	return e.ExecutionFields.getRecursively(path.toArray())
-}
-
-type ExecutionFields struct {
-	Fields map[string]ExecutionFields
-	Values map[string]interface{}
-}
-
-func (e ExecutionFields) getFields(key string) ExecutionFields {
-	if v, ok := e.Fields[key]; ok {
-		return v
-	} else {
-		return ExecutionFields{}
+func (c ExecutionContext) GetFiledByPath(path string) string {
+	bytes, err := json.Marshal(c.fields)
+	if err != nil {
+		return ""
 	}
-}
 
-func (e ExecutionFields) getRecursively(path []string) string {
-	if len(path) == 1 {
-		if v, ok := e.Values[path[0]]; ok {
-			return v.(string)
-		} else {
-			return ""
-		}
-	} else {
-		first, tail := path[0], path[1:]
-		return e.getFields(first).getRecursively(tail)
+	var m map[string]interface{}
+	err = json.Unmarshal(bytes, &m)
+	if err != nil {
+		return ""
 	}
-}
 
-type Path struct {
-	Path string
-}
+	f, err := flatten.Flatten(m, "", flatten.DotStyle)
+	if err != nil {
+		return ""
+	}
 
-func NewPath(path string) Path {
-	return Path{Path: path}
-}
+	v, ok := f[path]
+	if !ok {
+		return ""
+	}
 
-func (p Path) toArray() []string {
-	return strings.Split(p.Path, ".")
-}
-
-func (p Path) getFirst() string {
-	return p.toArray()[0]
-}
-
-func (p Path) getTail() []string {
-	return p.toArray()[1:]
-}
-
-func (p Path) getFirstAndTail() (string, []string) {
-	path := p.toArray()
-	return path[0], path[1:]
+	return fmt.Sprintf("%v", v)
 }

@@ -17,7 +17,7 @@ func (i ConfigActionExecutor) Run(c context.ExecutionContext) (ActionResult, err
 
 	cs := configstore.EtcdConfigStore{} // TODO move somewhere
 
-	project := c.GetValueByPath(context.NewPath("system.project")).(string)
+	project := c.GetFiledByPath("system.project")
 
 	configs, err := cs.List(configstore.ConfigListRequest{
 		Project: project,

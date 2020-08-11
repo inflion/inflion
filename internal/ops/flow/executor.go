@@ -29,8 +29,8 @@ func NewFlowExecutor(flow Flow, loader ActionLoader) *Executor {
 	return &Executor{flow: flow, loader: loader}
 }
 
-func (e Executor) Run(context context.ExecutionContext) (Result, error) {
-	c := e.exec(e.flow.Stages.getFirstStage(), context)
+func (e Executor) Run(ctx context.ExecutionContext) (Result, error) {
+	c := e.exec(e.flow.Stages.getFirstStage(), ctx)
 
 	return Result{
 		Message: "success", // TODO handle errors. get from context.
@@ -38,18 +38,18 @@ func (e Executor) Run(context context.ExecutionContext) (Result, error) {
 	}, nil
 }
 
-func (e Executor) exec(stage Stage, context context.ExecutionContext) context.ExecutionContext {
+func (e Executor) exec(stage Stage, ctx context.ExecutionContext) context.ExecutionContext {
 	if stage == nil { // this is probably the last stage (next stage is not specified)
 		log.Println("stage is nil. end flow execution")
-		return context
+		return ctx
 	}
 
-	log.Printf("execute action: stage id: %s, context: %+v", stage.getId(), context)
+	log.Printf("execute action: stage id: %s, context: %+v", stage.getId(), ctx)
 
 	var nextStage Stage
 	if stage.isNormalStage() {
 		if s, ok := stage.(NormalStage); ok {
-			context = e.execStage(s, context)
+			ctx = e.execStage(s, ctx)
 
 			if n := s.getNextStage().Stage; n != nil {
 				nextStage = n
@@ -63,7 +63,7 @@ func (e Executor) exec(stage Stage, context context.ExecutionContext) context.Ex
 
 	if stage.isConditionStage() {
 		if cond, ok := stage.(ConditionStage); ok {
-			nextStage = cond.Evaluate(context)
+			nextStage = cond.Evaluate(ctx)
 
 			if nextStage == nil {
 				log.Println("stage is nil. it might be a bug.")
@@ -79,7 +79,7 @@ func (e Executor) exec(stage Stage, context context.ExecutionContext) context.Ex
 		log.Printf("next stage is nil")
 	}
 
-	return e.exec(nextStage, context)
+	return e.exec(nextStage, ctx)
 }
 
 func (e Executor) execStage(stage NormalStage, ctx context.ExecutionContext) context.ExecutionContext {
@@ -95,36 +95,20 @@ func (e Executor) execStage(stage NormalStage, ctx context.ExecutionContext) con
 			return ctx
 		}
 
-		ar, err := ae.Run(ctx)
+		result, err := ae.Run(ctx)
 		if err != nil {
 			log.Println(err)
 			return ctx
 		}
-		actionResults = actionResults.append(ar)
+		actionResults = append(actionResults, result)
 	}
+	ctx.AddField(stage.Name, actionResults)
 
-	log.Printf("action results: %+v", actionResults)
+	log.Printf("stage action results: %+v", actionResults)
 
-	ctx = e.addContextValuesFromActionResults(stage, actionResults, ctx)
-	log.Printf("ctx: %+v", ctx.ExecutionFields)
-
-	return ctx.AddFields("last", context.ExecutionFields{
-		Values: map[string]interface{}{
-			"status": actionResults.getExitMessage(),
-		},
+	ctx.AddField("last", map[string]string{
+		"status": actionResults.getExitMessage(),
 	})
-}
 
-func (e Executor) addContextValuesFromActionResults(stage NormalStage, results ActionResults, ctx context.ExecutionContext) context.ExecutionContext {
-	for _, r := range results {
-		values := map[string]interface{}{}
-		for k, v := range r.Outputs {
-			values[k] = v
-		}
-		fields := context.ExecutionFields{
-			Values: values,
-		}
-		ctx = ctx.AddFields(stage.Name, fields)
-	}
 	return ctx
 }

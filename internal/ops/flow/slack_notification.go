@@ -33,15 +33,15 @@ type slackNotificationParam struct {
 func newSlackNotificationParam(params map[string]string) (*slackNotificationParam, error) {
 	webhookUrl, ok := params["webhook_url"]
 	if !ok {
-		return nil, errors.New("parameter \"webhook_url\" not found")
+		return nil, errors.New("action parameter \"webhook_url\" not found")
 	}
 	channel, ok := params["channel"]
 	if !ok {
-		return nil, errors.New("parameter \"channel\" not found")
+		return nil, errors.New("action parameter \"channel\" not found")
 	}
 	notificationType, ok := params["notification_type"]
 	if !ok {
-		return nil, errors.New("parameter \"notification_type\" not found")
+		return nil, errors.New("action parameter \"notification_type\" not found")
 	}
 
 	return &slackNotificationParam{webhookUrl: webhookUrl, channel: channel, notificationType: notificationType}, nil
@@ -81,7 +81,7 @@ func (n *SlackNotificationActionExecutor) Run(ec context.ExecutionContext) (Acti
 		}
 	}
 
-	err = n.send()
+	err = n.send(slack_notification.NewSlackAttachmentBuilder(n.notificationEvent, n.action.Params))
 	if err != nil {
 		return ActionResult{
 			Action: n.action,
@@ -102,13 +102,13 @@ func (n *SlackNotificationActionExecutor) Run(ec context.ExecutionContext) (Acti
 	}, nil
 }
 
-func (n *SlackNotificationActionExecutor) send() error {
-	b := slack_notification.NewSlackAttachmentBuilder(n.notificationEvent, n.action.Params)
+func (n *SlackNotificationActionExecutor) send(builder *slack_notification.SlackAttachmentBuilder) error {
+	log.Print(builder.BuildAttachments())
 	payload := slack.Payload{
 		Username:    "Inflion",
 		Channel:     "#" + n.params.channel,
 		IconEmoji:   ":lion_face:",
-		Attachments: b.BuildAttachments(),
+		Attachments: builder.BuildAttachments(),
 	}
 
 	err := slack.Send(n.params.webhookUrl, "", payload)

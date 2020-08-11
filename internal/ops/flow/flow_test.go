@@ -11,9 +11,8 @@
 package flow
 
 import (
-	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/ops/flow/context"
-	"github.com/inflion/inflion/internal/ops/monitor"
 	"io/ioutil"
 	"testing"
 )
@@ -27,25 +26,17 @@ func init() {
 func TestFlow(t *testing.T) {
 	flow, _ := MockOpsFlow{}.Read()
 
-	bytes, err := ioutil.ReadFile("event.json")
-	event := monitor.MonitoringEvent{}
-	err = json.Unmarshal(bytes, &event)
+	rawEvent, err := ioutil.ReadFile("event.json")
 	if err != nil {
 		t.Error(err)
 	}
 
-	event.RawBody = bytes
+	event, err := inflionEvent.NewInflionEvent("test", rawEvent)
+	if err != nil {
+		t.Error(err)
+	}
+	ec := context.NewExecutionContextWithEvent(event)
 
-	ec := context.NewExecutionContext()
-	ec.AddFields("project", context.ExecutionFields{
-		Values: map[string]interface{}{"id": event.Project},
-	})
-	ec.AddFields("event", context.ExecutionFields{
-		Values: event.Body,
-	})
-	ec.AddFields("raw-event", context.ExecutionFields{
-		Values: map[string]interface{}{"json": event.RawBody},
-	})
 	fe := NewFlowExecutor(flow, NewAggregateActionLoader())
 	_, _ = fe.Run(ec)
 
