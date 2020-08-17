@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"github.com/inflion/inflion/internal/ops/flow"
+	flowContext "github.com/inflion/inflion/internal/ops/flow/context"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"
 )
@@ -23,41 +24,37 @@ type DefaultFlowServer struct {
 	Store store.Store
 }
 
-func (f DefaultFlowServer) List(_ context.Context, request *pb.ListFlowRequest) (*pb.ListFlowResponse, error) {
+func (s DefaultFlowServer) List(_ context.Context, request *pb.ListFlowRequest) (*pb.ListFlowResponse, error) {
 	result := &pb.ListFlowResponse{
 		Flows: []*pb.Flow{},
 	}
 
-	flows, err := f.Store.List(request.Project)
+	flows, err := s.Store.List(request.Project)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, flow := range flows {
+	for _, f := range flows {
 		result.Flows = append(result.Flows, &pb.Flow{
-			Project: flow.Project,
-			Id:      flow.Id.String(),
-			Body:    flow.Body,
+			Project: f.Project,
+			Id:      f.Id.String(),
+			Body:    f.Body,
 		})
 	}
 
 	return result, nil
 }
 
-func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*pb.RunFlowResponse, error) {
+func (s DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*pb.RunFlowResponse, error) {
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
 		return nil, err
 	}
 
-	ec := flow.NewExecutionContext()
-	ec.AddFields("system", flow.ExecutionFields{
-		Values: map[string]interface{}{
-			"project": request.Project,
-		},
-	})
+	ec := flowContext.NewExecutionContext()
+	ec.AddField("system", map[string]interface{}{"project": request.Project})
 
-	storedFlow, err := store.NewStoreRecipeReader(request.Project, id, f.Store).Read()
+	storedFlow, err := store.NewStoreRecipeReader(request.Project, id, s.Store).Read()
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +70,8 @@ func (f DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 	}, nil
 }
 
-func (f DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowRequest) (*pb.CreateFlowResponse, error) {
-	r, err := f.Store.Create(store.FlowCreateRequest{
+func (s DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowRequest) (*pb.CreateFlowResponse, error) {
+	r, err := s.Store.Create(store.FlowCreateRequest{
 		Project: request.Project,
 		Body:    request.Body,
 	})
@@ -87,13 +84,13 @@ func (f DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowReque
 	}, nil
 }
 
-func (f DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*pb.GetFlowResponse, error) {
+func (s DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*pb.GetFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := f.Store.Get(store.FlowGetRequest{
+	r, err := s.Store.Get(store.FlowGetRequest{
 		Project: request.Project,
 		Id:      id,
 	})
@@ -107,13 +104,13 @@ func (f DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*
 	}, nil
 }
 
-func (f DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowRequest) (*pb.UpdateFlowResponse, error) {
+func (s DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowRequest) (*pb.UpdateFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = f.Store.Update(store.FlowUpdateRequest{
+	err = s.Store.Update(store.FlowUpdateRequest{
 		Project: request.Project,
 		Id:      id,
 		Body:    request.Body,
@@ -128,13 +125,13 @@ func (f DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowReque
 	}, nil
 }
 
-func (f DefaultFlowServer) Delete(_ context.Context, request *pb.DeleteFlowRequest) (*pb.DeleteFlowResponse, error) {
+func (s DefaultFlowServer) Delete(_ context.Context, request *pb.DeleteFlowRequest) (*pb.DeleteFlowResponse, error) {
 	id, err := uuid.Parse(request.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = f.Store.Delete(store.FlowDeleteRequest{
+	err = s.Store.Delete(store.FlowDeleteRequest{
 		Project: request.Project,
 		Id:      id,
 	})

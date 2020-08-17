@@ -8,10 +8,10 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rule
+package matcher
 
 import (
-	inflionEvent "github.com/inflion/inflion/internal/ops/event"
+	"github.com/inflion/inflion/internal/ops/event"
 	"log"
 )
 
@@ -26,7 +26,7 @@ type Condition struct {
 	Matcher    condMatcher
 }
 
-func (m *Condition) match(event inflionEvent.InflionEvent) bool {
+func (m *Condition) match(event event.InflionEvent) bool {
 	if m.MatchType == "contains" {
 		m.Matcher = &ContainsMatcher{Value: m.MatchValue}
 	} else if m.MatchType == "exact" {

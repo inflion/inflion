@@ -17,20 +17,15 @@ func (MockOpsFlow) Read() (Flow, error) {
 		Id:   "stage1-id",
 		Name: "stage1-name",
 		NextStage: NextStage{
-			Id: "__end__",
+			Id: "cond1-id",
 		},
 		Actions: Actions{
 			{
-				Type: "notification",
-				Params: map[string]string{
-					"webhook_url":       "https://hooks.slack.com/services/T0109SMD89H/B010P6MBSJX/xcVSmPiAHLzee0ATth2Gqz",
-					"channel":           "notify_test",
-					"notification_type": "log",
-				},
+				Type:   "matcher",
+				Params: nil,
 			},
 		},
 	}
-
 	stageS2 := NormalStage{
 		Id:   "stage2-id",
 		Name: "stage2-name",

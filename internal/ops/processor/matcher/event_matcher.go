@@ -8,15 +8,15 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rule
+package matcher
 
 import (
-	inflionEvent "github.com/inflion/inflion/internal/ops/event"
+	"github.com/inflion/inflion/internal/ops/event"
 	"log"
 )
 
 type EventMatcher interface {
-	GetRulesMatchesTo(event inflionEvent.InflionEvent) ([]Rule, error)
+	GetRulesMatchesTo(event event.InflionEvent) ([]Rule, error)
 }
 
 func NewEventMatcher(store Store) EventMatcher {
@@ -27,7 +27,7 @@ type storeEventMatcher struct {
 	store Store
 }
 
-func (s *storeEventMatcher) GetRulesMatchesTo(event inflionEvent.InflionEvent) ([]Rule, error) {
+func (s *storeEventMatcher) GetRulesMatchesTo(event event.InflionEvent) ([]Rule, error) {
 	var matchedRules []Rule
 
 	rules, err := s.store.GetRules(event.Project())

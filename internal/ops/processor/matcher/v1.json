@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "format": {
+      "version": 1
+    }
+  },
+  "body": {
+    "name": "rule name",
+    "target": "flow name",
+    "conditions": [
+      {
+        "target_attr": "test",
+        "match_type": "contains",
+        "match_value": "test"
+      }
+    ]
+  }
+}

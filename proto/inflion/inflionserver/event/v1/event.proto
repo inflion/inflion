@@ -6,17 +6,17 @@ option go_package = "/eventpb";
 import "google/api/annotations.proto";
 
 service Event {
-  rpc Put (PutEventRequest) returns (PutEventResponse)
-  {
-    option (google.api.http) = {
+    rpc Put (PutEventRequest) returns (PutEventResponse) {
+        option (google.api.http) = {
       post: "/v1/events"
       body: "*"
     };
-  }
+    }
 }
 
 message PutEventRequest {
-  string event = 1;
+    string project = 1;
+    bytes event = 2;
 }
 
 message PutEventResponse {

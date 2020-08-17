@@ -12,6 +12,8 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"log"
 )
 
@@ -34,17 +36,21 @@ func (m *cpuMonitor) run(ctx context.Context) {
 		threshold := 0.01
 
 		if average.Avg.(float64) > threshold {
-			m.monitor.ProduceEvent(
-				MonitoringEvent{
-					Project: "TODO_FIX_ME", // FIXME get project from somewhere
-					Body: map[string]interface{}{
-						"Type":       CPUUtilization.String(),
-						"Message":    "average cpu utilization is high",
-						"InstanceId": i.InstanceID,
-						"Value":      average.Avg.(float64),
-					},
-				},
-			)
+			bytes, err := json.Marshal(map[string]interface{}{
+				"Type":       CPUUtilization.String(),
+				"Message":    "average cpu utilization is high",
+				"InstanceId": i.InstanceID,
+				"Value":      average.Avg.(float64),
+			})
+			if err != nil {
+				log.Print(err)
+			}
+
+			ie, err := inflionEvent.NewInflionEvent("TODO_FIX_ME", bytes) // FIXME get project from somewhere
+			if err != nil {
+				log.Print(err)
+			}
+			m.monitor.ProduceEvent(*ie)
 		}
 	}
 }

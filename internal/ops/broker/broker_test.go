@@ -11,7 +11,10 @@
 package broker
 
 import (
-	"github.com/inflion/inflion/internal/ops/monitor"
+	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
+	"github.com/inflion/inflion/internal/ops/processor"
+	"log"
 	"testing"
 )
 
@@ -19,19 +22,23 @@ type mockEventProcessor struct {
 	processedEventCount int
 }
 
-func (m *mockEventProcessor) process(_ monitor.MonitoringEvent) error {
+func (m *mockEventProcessor) Process(_ inflionEvent.InflionEvent) error {
 	m.processedEventCount = m.processedEventCount + 1
 	return nil
 }
 
-type mockConsumer struct {
-}
+type mockConsumer struct{}
 
-func (m mockConsumer) consume(processor EventProcessor) {
-	_ = processor.process(monitor.MonitoringEvent{
-		Project: "sandbox",
-		Body:    map[string]interface{}{"type": "test", "message": "message"},
-	})
+func (m mockConsumer) consume(processor processor.EventProcessor) {
+	bytes, err := json.Marshal(map[string]interface{}{"type": "test", "message": "message"})
+	if err != nil {
+		log.Print(err)
+	}
+	ie, err := inflionEvent.NewInflionEvent("sandbox", bytes)
+	if err != nil {
+		log.Print(err)
+	}
+	_ = processor.Process(*ie)
 }
 
 func TestBroker(t *testing.T) {

@@ -8,19 +8,20 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package broker
+package processor
 
 import (
 	"github.com/google/uuid"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/ops/flow"
+	"github.com/inflion/inflion/internal/ops/flow/context"
 	"github.com/inflion/inflion/internal/ops/flow/store"
-	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/rule"
 	"log"
 )
 
 type EventProcessor interface {
-	process(event monitor.MonitoringEvent) error
+	Process(inflionEvent.InflionEvent) error
 }
 
 type defaultEventProcessor struct {
@@ -35,7 +36,7 @@ func NewEventProcessor(store store.Store, matcher rule.EventMatcher) EventProces
 	}
 }
 
-func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
+func (d defaultEventProcessor) Process(event inflionEvent.InflionEvent) error {
 	log.Printf("processing evnet: %+v", event)
 
 	matchedRules, err := d.matcher.GetRulesMatchesTo(event)
@@ -55,7 +56,7 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 		resp, err := d.store.Get(
 			store.FlowGetRequest{
 				Id:      flowId,
-				Project: event.Project,
+				Project: event.Project(),
 			},
 		)
 		if err != nil {
@@ -68,18 +69,8 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 			log.Println(err)
 		}
 
-		ec := flow.NewExecutionContext()
-		ec.AddFields("project", flow.ExecutionFields{
-			Values: map[string]interface{}{"id": event.Project},
-		})
-		ec.AddFields("event", flow.ExecutionFields{
-			Values: event.Body,
-		})
-		ec.AddFields("raw-event", flow.ExecutionFields{
-			Values: map[string]interface{}{"json": event.RawBody},
-		})
+		result, err := flow.NewFlowExecutor(f, flow.NewAggregateActionLoader()).Run(context.NewExecutionContextWithEvent(&event))
 
-		result, err := flow.NewFlowExecutor(f, flow.NewAggregateActionLoader()).Run(ec)
 		if err != nil {
 			log.Println(err)
 		}
@@ -87,16 +78,4 @@ func (d defaultEventProcessor) process(event monitor.MonitoringEvent) error {
 	}
 
 	return nil
-}
-
-type ByteFlowReader struct {
-	body []byte
-}
-
-func (b ByteFlowReader) Read() (flow.Flow, error) {
-	recipe, err := flow.Unmarshal(b.body)
-	if err != nil {
-		return flow.Flow{}, err
-	}
-	return recipe, nil
 }

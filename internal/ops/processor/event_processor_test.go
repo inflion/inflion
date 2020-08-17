@@ -8,20 +8,20 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package broker
+package processor
 
 import (
+	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/ops/flow/store"
-	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/rule"
 	"io/ioutil"
 	"testing"
 )
 
-type mockEventMatcher struct {
-}
+type mockEventMatcher struct{}
 
-func (m mockEventMatcher) GetRulesMatchesTo(_ monitor.MonitoringEvent) ([]rule.Rule, error) {
+func (m mockEventMatcher) GetRulesMatchesTo(_ inflionEvent.InflionEvent) ([]rule.Rule, error) {
 	return []rule.Rule{
 		{
 			RuleName: "rule1",
@@ -58,12 +58,16 @@ func (e mockStore) Get(_ store.FlowGetRequest) (store.FlowGetResponse, error) {
 
 func TestEventProcessor(t *testing.T) {
 	e := NewEventProcessor(mockStore{}, mockEventMatcher{})
-	err := e.process(
-		monitor.MonitoringEvent{
-			Project: "sandbox",
-			Body:    map[string]interface{}{"type": "test", "message": "message"},
-		},
-	)
+	bytes, err := json.Marshal(map[string]interface{}{"type": "test", "message": "message"})
+	if err != nil {
+		t.Errorf("got an error %+v", err)
+	}
+	ie, err := inflionEvent.NewInflionEvent("sandbox", bytes)
+	if err != nil {
+		t.Errorf("got an error %+v", err)
+	}
+
+	err = e.Process(*ie)
 	if err != nil {
 		t.Errorf("got an error %+v", err)
 	}
