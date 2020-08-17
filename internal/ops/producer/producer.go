@@ -11,6 +11,8 @@
 package producer
 
 import (
+	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/nsqio/go-nsq"
 	"log"
 )
@@ -20,14 +22,13 @@ const nsqdAddress = "nsqd:4150"
 
 var producer *nsq.Producer
 
-type Producer struct {
-}
+type Producer struct{}
 
 func NewProducer() *Producer {
 	return &Producer{}
 }
 
-func (p *Producer) Produce(event []byte) (err error) {
+func (p *Producer) Produce(event inflionEvent.InflionEvent) (err error) {
 	if producer == nil {
 		producer, err = nsq.NewProducer(nsqdAddress, nsq.NewConfig())
 		if err != nil {
@@ -36,11 +37,18 @@ func (p *Producer) Produce(event []byte) (err error) {
 		}
 	}
 
-	err = producer.Publish(topicName, event)
+	message, err := json.Marshal(event)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+
+	err = producer.Publish(topicName, message)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	return nil
 }
 

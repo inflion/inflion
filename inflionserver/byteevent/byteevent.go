@@ -13,12 +13,18 @@ package byteevent
 import (
 	"context"
 	pb "github.com/inflion/inflion/inflionserver/byteevent/byteeventpb"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/ops/producer"
+	"log"
 )
 
-type DefaultByteEventServer struct {
-}
+type DefaultByteEventServer struct{}
 
 func (f DefaultByteEventServer) Put(_ context.Context, request *pb.PutByteEventRequest) (*pb.PutEventResponse, error) {
-	return &pb.PutEventResponse{}, producer.NewProducer().Produce(request.Event)
+	log.Print("event request received")
+	e, err := inflionEvent.NewInflionEvent(request.Project, request.Event)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.PutEventResponse{}, producer.NewProducer().Produce(*e)
 }

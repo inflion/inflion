@@ -8,15 +8,15 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rule
+package matcher
 
-import inflionEvent "github.com/inflion/inflion/internal/ops/event"
+import "github.com/inflion/inflion/internal/ops/event"
 
 type Conditions struct {
 	Conditions []Condition
 }
 
-func (r *Conditions) match(event inflionEvent.InflionEvent) bool {
+func (r *Conditions) match(event event.InflionEvent) bool {
 	var matches []bool
 	for _, rule := range r.Conditions {
 		matches = append(matches, rule.match(event))

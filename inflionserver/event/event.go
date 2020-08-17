@@ -13,12 +13,17 @@ package event
 import (
 	"context"
 	pb "github.com/inflion/inflion/inflionserver/event/eventpb"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/ops/producer"
 )
 
-type DefaultEventServer struct {
-}
+type DefaultEventServer struct{}
 
 func (f DefaultEventServer) Put(_ context.Context, request *pb.PutEventRequest) (*pb.PutEventResponse, error) {
-	return &pb.PutEventResponse{}, producer.NewProducer().Produce([]byte(request.Event))
+	ie, err := inflionEvent.NewInflionEvent(request.Project, request.Event)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.PutEventResponse{}, producer.NewProducer().Produce(*ie)
 }

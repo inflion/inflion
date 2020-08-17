@@ -12,6 +12,8 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
 	"github.com/inflion/inflion/internal/paws"
 	"log"
 )
@@ -45,17 +47,24 @@ func (s *sgMonitor) run(ctx context.Context) {
 
 		for _, sg := range securityGroups {
 			if sg.HasOpenPorts() {
-				s.monitor.ProduceEvent(MonitoringEvent{
-					Project: "TODO_FIX_ME", // FIXME get project from somewhere
-					Body: map[string]interface{}{
-						"Type":              OpenPortDetected.String(),
-						"Message":           "open port found",
-						"SecurityGroupId":   sg.Id,
-						"SecurityGroupName": sg.Name,
-						//"OpenPorts":       sg.GetOpenPorts().ToString(),
-						"OpenPorts": "22",
-					},
+				bytes, err := json.Marshal(map[string]interface{}{
+					"Type":              OpenPortDetected.String(),
+					"Message":           "open port found",
+					"SecurityGroupId":   sg.Id,
+					"SecurityGroupName": sg.Name,
+					//"OpenPorts":       sg.GetOpenPorts().ToString(),
+					"OpenPorts": "22",
 				})
+				if err != nil {
+					log.Print(err)
+				}
+
+				ie, err := inflionEvent.NewInflionEvent("TODO_FIX_ME", bytes) // FIXME get project from somewhere
+				if err != nil {
+					log.Print(err)
+				}
+
+				s.monitor.ProduceEvent(*ie)
 			}
 		}
 	}

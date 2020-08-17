@@ -5,7 +5,7 @@ import (
 	"github.com/inflion/inflion/internal/ops/flow"
 )
 
-type FlowData struct {
+type StoredFlow struct {
 	Project string
 	Id      uuid.UUID
 	Body    string
@@ -53,7 +53,7 @@ type FlowDeleteResponse struct {
 }
 
 type Store interface {
-	List(project string) ([]FlowData, error)
+	List(project string) ([]StoredFlow, error)
 	Create(request FlowCreateRequest) (FlowCreateResponse, error)
 	Get(request FlowGetRequest) (FlowGetResponse, error)
 	Update(request FlowUpdateRequest) error

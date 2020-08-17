@@ -5,14 +5,14 @@ package ops
 
 import (
 	"github.com/google/wire"
-	"github.com/inflion/inflion/internal/ops/rule"
-	"github.com/inflion/inflion/internal/ops/syncer"
-	flowstore "github.com/inflion/inflion/internal/ops/flow/store"
-	"github.com/inflion/inflion/internal/timescale"
-	"github.com/inflion/inflion/internal/store"
 	"github.com/inflion/inflion/internal/ops/broker"
+	flowstore "github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/producer"
+	"github.com/inflion/inflion/internal/ops/rule"
+	"github.com/inflion/inflion/internal/ops/syncer"
+	"github.com/inflion/inflion/internal/store"
+	"github.com/inflion/inflion/internal/timescale"
 )
 
 func Initialize() (Ops, error) {

@@ -12,25 +12,26 @@ type ExecutionContext struct {
 	event  event.InflionEvent
 }
 
-func (c ExecutionContext) Fields() map[string]interface{} {
-	return c.fields
-}
-
-func (c ExecutionContext) Event() event.InflionEvent {
-	return c.event
-}
-
 func NewExecutionContext() ExecutionContext {
 	return ExecutionContext{
 		fields: map[string]interface{}{},
 		event:  event.InflionEvent{},
 	}
 }
+
 func NewExecutionContextWithEvent(event *event.InflionEvent) ExecutionContext {
 	return ExecutionContext{
 		fields: map[string]interface{}{},
 		event:  *event,
 	}
+}
+
+func (c ExecutionContext) Fields() map[string]interface{} {
+	return c.fields
+}
+
+func (c ExecutionContext) Event() event.InflionEvent {
+	return c.event
 }
 
 func (c ExecutionContext) AddField(key string, field interface{}) {

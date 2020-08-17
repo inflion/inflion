@@ -16,7 +16,8 @@ service ByteEvent {
 }
 
 message PutByteEventRequest {
-  bytes event = 1;
+  string project = 1;
+  bytes event = 2;
 }
 
 message PutEventResponse {

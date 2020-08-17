@@ -11,22 +11,23 @@
 package broker
 
 import (
+	"github.com/inflion/inflion/internal/ops/processor"
 	_ "github.com/lib/pq"
 )
 
 const topicName = "monitoring-events"
 
 type Consumer interface {
-	consume(processor EventProcessor)
+	consume(processor processor.EventProcessor)
 }
 
 // Broker is to handle monitoring events.
 type Broker struct {
 	consumer  Consumer
-	processor EventProcessor
+	processor processor.EventProcessor
 }
 
-func NewBroker(consumer Consumer, processor EventProcessor) Broker {
+func NewBroker(consumer Consumer, processor processor.EventProcessor) Broker {
 	return Broker{
 		consumer:  consumer,
 		processor: processor,

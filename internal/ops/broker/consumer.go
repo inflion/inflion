@@ -12,21 +12,22 @@ package broker
 
 import (
 	"encoding/json"
-	"github.com/inflion/inflion/internal/ops/monitor"
+	inflionEvent "github.com/inflion/inflion/internal/ops/event"
+	"github.com/inflion/inflion/internal/ops/processor"
 	"github.com/nsqio/go-nsq"
 	"log"
 	"os"
 )
 
 type nsqConsumer struct {
-	processor EventProcessor
+	processor processor.EventProcessor
 }
 
 func NewNsqConsumer() Consumer {
 	return &nsqConsumer{}
 }
 
-func (n *nsqConsumer) consume(processor EventProcessor) {
+func (n *nsqConsumer) consume(processor processor.EventProcessor) {
 	n.processor = processor
 	nsqlookupdHost := os.Getenv("NSQLOOKUPD_HOST")
 	nsqlookupdPort := os.Getenv("NSQLOOKUPD_PORT")
@@ -54,16 +55,14 @@ func (n *nsqConsumer) HandleMessage(message *nsq.Message) error {
 		return nil
 	}
 
-	event := monitor.MonitoringEvent{}
-	err := json.Unmarshal(message.Body, &event)
+	e := inflionEvent.InflionEvent{}
+	err := json.Unmarshal(message.Body, &e)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	event.RawBody = message.Body
-
-	err = n.processor.process(event)
+	err = n.processor.Process(e)
 	if err != nil {
 		log.Println(err)
 		return err
