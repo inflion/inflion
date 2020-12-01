@@ -9,6 +9,7 @@ import (
 	flowstore "github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/inflion/inflion/internal/ops/monitor"
 	"github.com/inflion/inflion/internal/ops/producer"
+	"github.com/inflion/inflion/internal/ops/processor"
 	"github.com/inflion/inflion/internal/ops/rule"
 	"github.com/inflion/inflion/internal/ops/syncer"
 	"github.com/inflion/inflion/internal/store"
@@ -31,7 +32,7 @@ func Initialize() (Ops, error) {
 		monitor.NewMonitor,
 		broker.NewNsqConsumer,
 		broker.NewBroker,
-		broker.NewEventProcessor,
+		processor.NewEventProcessor,
 		flowstore.NewFlowStore,
 		rule.NewEventMatcher,
 		rule.NewRuleStore,

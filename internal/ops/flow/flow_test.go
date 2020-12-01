@@ -24,8 +24,6 @@ func init() {
 }
 
 func TestFlow(t *testing.T) {
-	flow, _ := MockOpsFlow{}.Read()
-
 	rawEvent, err := ioutil.ReadFile("event.json")
 	if err != nil {
 		t.Error(err)
@@ -39,7 +37,6 @@ func TestFlow(t *testing.T) {
 
 	fe := NewFlowExecutor(flow, NewAggregateActionLoader())
 	_, _ = fe.Run(ec)
-
 }
 
 func Test_next_stage_should_be_cond1_via_first_stage_then_next_stage(t *testing.T) {
