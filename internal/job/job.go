@@ -3,8 +3,6 @@ package job
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/inflion/inflion/internal/ops/flow"
-	"github.com/inflion/inflion/internal/ops/flow/action"
 	"github.com/inflion/inflion/internal/ops/flow/store"
 	"github.com/robfig/cron/v3"
 	"log"
@@ -34,18 +32,18 @@ func NewFlowJobRunner(flowId uuid.UUID, project string, store store.Store) JobRu
 }
 
 func (f FlowJobRunner) Run() error {
-	ec := action.NewExecutionContext()
-	ec.AddFields("system", action.ExecutionFields{
-		Values: map[string]interface{}{
-			"project": f.project,
-		},
-	})
+	//ec := context.NewExecutionContext()
+	//ec.AddFields("system", action.ExecutionFields{
+	//	Values: map[string]interface{}{
+	//		"project": f.project,
+	//	},
+	//})
 
-	opsflow := flow.NewOpsFlow(store.NewStoreRecipeReader(f.project, f.flowId, f.store))
-	_, err := opsflow.Run(ec)
-	if err != nil {
-		return err
-	}
+	//opsflow := flow.NewOpsFlow(store.NewStoreRecipeReader(f.project, f.flowId, f.store))
+	//_, err := opsflow.Run(ec)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }
