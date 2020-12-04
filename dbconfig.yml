@@ -1,5 +1,0 @@
-development:
-  dialect: postgres
-  dir: internal/store/schema
-  table: migration
-  datasource: host=${DB_HOST} port=${DB_PORT} dbname=${DB_DATABASE} user=${DB_USERNAME} password=${DB_PASSWORD} sslmode=disable

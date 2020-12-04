@@ -13,7 +13,7 @@ package main
 
 import (
 	"context"
-	"github.com/inflion/inflion/internal/job"
+	"github.com/inflion/inflion/job"
 	"github.com/inflion/inflion/jobserver/jobserver"
 	pb "github.com/inflion/inflion/jobserver/jobserverpb"
 	"google.golang.org/grpc"

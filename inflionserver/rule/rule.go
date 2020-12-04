@@ -13,8 +13,8 @@ package rule
 import (
 	"context"
 	"github.com/google/uuid"
+	rule "github.com/inflion/inflion/flow/matcher"
 	pb "github.com/inflion/inflion/inflionserver/rule/rulepb"
-	"github.com/inflion/inflion/internal/ops/rule"
 	"log"
 )
 

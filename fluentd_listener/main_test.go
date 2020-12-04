@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/inflion/inflion/internal/logger"
+	"github.com/inflion/inflion/logger"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "format": {
+      "version": 1
+    }
+  },
+  "body": {
+    "name": "sample",
+    "target": "afd4b796-35e2-11eb-97c0-98af651b5661",
+    "conditions": [
+      {
+        "target_attr": "source",
+        "match_type": "contains",
+        "match_value": "aws.trustedadvisor"
+      }
+    ]
+  }
+}

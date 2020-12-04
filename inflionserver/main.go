@@ -14,18 +14,16 @@
 package main
 
 import (
+	"github.com/inflion/inflion/flow"
+	"github.com/inflion/inflion/flow/matcher"
 	"github.com/inflion/inflion/inflionserver/byteevent"
 	"github.com/inflion/inflion/inflionserver/byteevent/byteeventpb"
-	"github.com/inflion/inflion/inflionserver/event"
-	"github.com/inflion/inflion/inflionserver/event/eventpb"
-	"github.com/inflion/inflion/inflionserver/flow"
+	flowserver "github.com/inflion/inflion/inflionserver/flow"
 	"github.com/inflion/inflion/inflionserver/flow/flowpb"
 	"github.com/inflion/inflion/inflionserver/job"
 	"github.com/inflion/inflion/inflionserver/job/jobpb"
 	ruleserver "github.com/inflion/inflion/inflionserver/rule"
 	"github.com/inflion/inflion/inflionserver/rule/rulepb"
-	"github.com/inflion/inflion/internal/ops/flow/store"
-	"github.com/inflion/inflion/internal/ops/rule"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -41,10 +39,9 @@ func main() {
 
 	server := grpc.NewServer()
 
-	flowpb.RegisterFlowInfoServer(server, flow.DefaultFlowServer{Store: store.EtcdBackedFlowStore{}})
-	rulepb.RegisterRuleServer(server, ruleserver.DefaultRuleServer{Store: rule.EtcdStore{}})
+	flowpb.RegisterFlowInfoServer(server, flowserver.DefaultFlowServer{Store: flow.EtcdBackedFlowStore{}})
+	rulepb.RegisterRuleServer(server, ruleserver.DefaultRuleServer{Store: matcher.EtcdStore{}})
 	jobpb.RegisterJobInfoServer(server, job.NewJobServer())
-	eventpb.RegisterEventServer(server, event.DefaultEventServer{})
 	byteeventpb.RegisterByteEventServer(server, byteevent.DefaultByteEventServer{})
 
 	if err := server.Serve(lis); err != nil {
