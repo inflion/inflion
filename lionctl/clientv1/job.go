@@ -14,7 +14,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	pb "github.com/inflion/inflion/inflionserver/job/jobpb"
-	"github.com/inflion/inflion/internal/job"
+	"github.com/inflion/inflion/job"
 )
 
 type Job struct {

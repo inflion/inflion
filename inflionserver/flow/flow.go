@@ -13,15 +13,14 @@ package flow
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/inflion/inflion/flow"
+	context2 "github.com/inflion/inflion/flow/context"
 	pb "github.com/inflion/inflion/inflionserver/flow/flowpb"
-	"github.com/inflion/inflion/internal/ops/flow"
-	flowContext "github.com/inflion/inflion/internal/ops/flow/context"
-	"github.com/inflion/inflion/internal/ops/flow/store"
 	"log"
 )
 
 type DefaultFlowServer struct {
-	Store store.Store
+	Store flow.Store
 }
 
 func (s DefaultFlowServer) List(_ context.Context, request *pb.ListFlowRequest) (*pb.ListFlowResponse, error) {
@@ -51,10 +50,10 @@ func (s DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 		return nil, err
 	}
 
-	ec := flowContext.NewExecutionContext()
+	ec := context2.NewExecutionContext()
 	ec.AddField("system", map[string]interface{}{"project": request.Project})
 
-	storedFlow, err := store.NewStoreRecipeReader(request.Project, id, s.Store).Read()
+	storedFlow, err := flow.NewStoreRecipeReader(request.Project, id, s.Store).Read()
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func (s DefaultFlowServer) Run(_ context.Context, request *pb.RunFlowRequest) (*
 }
 
 func (s DefaultFlowServer) Create(_ context.Context, request *pb.CreateFlowRequest) (*pb.CreateFlowResponse, error) {
-	r, err := s.Store.Create(store.FlowCreateRequest{
+	r, err := s.Store.Create(flow.FlowCreateRequest{
 		Project: request.Project,
 		Body:    request.Body,
 	})
@@ -90,7 +89,7 @@ func (s DefaultFlowServer) Get(_ context.Context, request *pb.GetFlowRequest) (*
 		return nil, err
 	}
 
-	r, err := s.Store.Get(store.FlowGetRequest{
+	r, err := s.Store.Get(flow.FlowGetRequest{
 		Project: request.Project,
 		Id:      id,
 	})
@@ -110,7 +109,7 @@ func (s DefaultFlowServer) Update(_ context.Context, request *pb.UpdateFlowReque
 		return nil, err
 	}
 
-	err = s.Store.Update(store.FlowUpdateRequest{
+	err = s.Store.Update(flow.FlowUpdateRequest{
 		Project: request.Project,
 		Id:      id,
 		Body:    request.Body,
@@ -131,7 +130,7 @@ func (s DefaultFlowServer) Delete(_ context.Context, request *pb.DeleteFlowReque
 		return nil, err
 	}
 
-	err = s.Store.Delete(store.FlowDeleteRequest{
+	err = s.Store.Delete(flow.FlowDeleteRequest{
 		Project: request.Project,
 		Id:      id,
 	})

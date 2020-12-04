@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	pb "github.com/inflion/inflion/inflionserver/byteevent/byteeventpb"
-	"github.com/inflion/inflion/internal/logger"
+	"github.com/inflion/inflion/logger"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	_log "log"

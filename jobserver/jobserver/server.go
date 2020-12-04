@@ -13,7 +13,7 @@ package jobserver
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/inflion/inflion/internal/job"
+	"github.com/inflion/inflion/job"
 	pb "github.com/inflion/inflion/jobserver/jobserverpb"
 	"log"
 )
