@@ -1,0 +1,12 @@
+BackupTargetFilers:
+  - name: "tag:ColdBackup"
+    values:
+      - "true"
+
+AmiTags:
+  - key: "env"
+    value: "production"
+  - key: "type"
+    value: "TEST"
+
+LaunchPermissionAddUserId: ""
