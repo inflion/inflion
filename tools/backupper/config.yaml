@@ -1,12 +1,20 @@
-BackupTargetFilers:
-  - name: "tag:ColdBackup"
-    values:
-      - "true"
+BackupTargetConfig:
+  profile: ""
+  target_filers:
+    - name: "tag:ColdBackup"
+      values:
+        - "true"
+  ami_tags:
+    - key: "env"
+      value: "production"
+    - key: "type"
+      value: "TEST"
 
-AmiTags:
-  - key: "env"
-    value: "production"
-  - key: "type"
-    value: "TEST"
-
-LaunchPermissionAddUserId: ""
+AMILaunchTestConfig:
+  profile: ""
+  launch_permission_add_user_id: ""
+  instance_type: "m1.small"
+  subnet_id: ""
+  key_name: ""
+  security_group_ids:
+    - ""

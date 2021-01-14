@@ -15,13 +15,19 @@ func main() {
 
 	conf, err := newConf(confPath)
 	if err != nil {
-		fmt.Printf("err: %v", err)
 		os.Exit(2)
 	}
 
-	err = NewBackupper(*conf, ec2.New(session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})))).Run()
+	err = NewBackupper(
+		*conf,
+		ec2.New(session.Must(session.NewSessionWithOptions(session.Options{
+			Profile:           conf.BackupTargetConfig.Profile,
+			SharedConfigState: session.SharedConfigEnable,
+		}))),
+		ec2.New(session.Must(session.NewSessionWithOptions(session.Options{
+			Profile:           conf.AmiLaunchTestConfig.Profile,
+			SharedConfigState: session.SharedConfigEnable,
+		})))).Run()
 	if err != nil {
 		fmt.Printf("err: %v", err)
 		os.Exit(2)

@@ -12,18 +12,19 @@ import (
 )
 
 type Backupper struct {
-	config          Config
-	client          *ec2.EC2
-	BackupInstances BackupInstances
+	config           Config
+	client           *ec2.EC2
+	launchTestClient *ec2.EC2
+	BackupInstances  BackupInstances
 }
 
-func NewBackupper(config Config, client *ec2.EC2) *Backupper {
-	return &Backupper{config: config, client: client}
+func NewBackupper(config Config, client *ec2.EC2, launchTestClient *ec2.EC2) *Backupper {
+	return &Backupper{config: config, client: client, launchTestClient: launchTestClient}
 }
 
 func (h *Backupper) Run() error {
 	fmt.Println("Getting instance information...")
-	err := h.getBackupTargetInstances(h.config.BackupTargetFilers)
+	err := h.getBackupTargetInstances(h.config.BackupTargetConfig.BackupTargetFilers)
 	if err != nil {
 		return err
 	}
@@ -46,16 +47,16 @@ func (h *Backupper) Run() error {
 	wait(NewInstanceChecker(h.client, h.BackupInstances.ids, ec2.InstanceStateNameStopped))
 
 	fmt.Println("Creating AMIs...")
-	imageIds, err := h.createAmi()
+	err = h.createAmi()
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Waiting for AMIs to be available...")
-	wait(NewImageStateChecker(h.client, imageIds))
+	wait(NewImageStateChecker(h.client, *h.BackupInstances.imageIds))
 
 	fmt.Println("Adding name tag to snapshots...")
-	err = h.addNameTagToSnapShots(imageIds)
+	err = h.addNameTagToSnapShots(*h.BackupInstances.imageIds)
 	if err != nil {
 		return err
 	}
@@ -71,11 +72,78 @@ func (h *Backupper) Run() error {
 	fmt.Println("All instances running")
 
 	fmt.Println("Adding AMI launch permissions to account...")
-	h.addPermissionToAmi(imageIds, h.config.LaunchPermissionAddUserId)
+	h.addPermissionToAmi(*h.BackupInstances.imageIds, h.config.AmiLaunchTestConfig.LaunchPermissionAddUserId)
+
+	fmt.Println("Launching AMI with account " + h.config.AmiLaunchTestConfig.Profile)
+	h.runLaunchTestInstance()
 
 	fmt.Println("Finished")
 
 	return nil
+}
+
+func (h *Backupper) runLaunchTestInstancesInput(instance *BackupInstance) *ec2.RunInstancesInput {
+	return &ec2.RunInstancesInput{
+		ImageId:          instance.imageId,
+		InstanceType:     aws.String(h.config.AmiLaunchTestConfig.InstanceType),
+		KeyName:          aws.String(h.config.AmiLaunchTestConfig.KeyName),
+		MaxCount:         aws.Int64(1),
+		MinCount:         aws.Int64(1),
+		SecurityGroupIds: h.config.AmiLaunchTestConfig.SecurityGroupIds,
+		SubnetId:         aws.String(h.config.AmiLaunchTestConfig.SubnetId),
+		TagSpecifications: []*ec2.TagSpecification{
+			{
+				ResourceType: aws.String("instance"),
+				Tags: []*ec2.Tag{
+					{
+						Key:   aws.String("Name"),
+						Value: aws.String("launch_test_" + instance.name),
+					},
+					{
+						Key:   aws.String("LaunchTest"),
+						Value: aws.String("true" + instance.name),
+					},
+				},
+			},
+			{
+				ResourceType: aws.String("volume"),
+				Tags: []*ec2.Tag{
+					{
+						Key:   aws.String("Name"),
+						Value: aws.String("launch_test_" + instance.name),
+					},
+					{
+						Key:   aws.String("LaunchTest"),
+						Value: aws.String("true" + instance.name),
+					},
+				},
+			},
+		},
+	}
+}
+func (h *Backupper) runLaunchTestInstance() {
+	const suffix = ".private.test"
+	const strRepeatLength = 40
+	var instanceIds []*string
+
+	fmt.Println(strings.Repeat("-", strRepeatLength))
+	for _, i := range h.BackupInstances.instances {
+		reservation, err := h.launchTestClient.RunInstances(h.runLaunchTestInstancesInput(i))
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		for _, i := range reservation.Instances {
+			fmt.Printf("Host %v\n  HostName %v\n", getTagValue(i.Tags, "Name")+suffix, *i.PrivateIpAddress)
+			instanceIds = append(instanceIds, i.InstanceId)
+		}
+
+	}
+	fmt.Println(strings.Repeat("-", strRepeatLength))
+
+	fmt.Println("Waiting for the state of all test instances to be running...")
+	wait(NewInstanceChecker(h.launchTestClient, instanceIds, ec2.InstanceStateNameRunning))
+
 }
 
 func (h *Backupper) getBackupTargetInstances(filters []*ec2.Filter) error {
@@ -94,7 +162,7 @@ func (h *Backupper) getBackupTargetInstances(filters []*ec2.Filter) error {
 				backupExcludeVolumes: getBackupExcludeVolumes(i.Tags),
 			}
 
-			h.BackupInstances.instances = append(h.BackupInstances.instances, instance)
+			h.BackupInstances.instances = append(h.BackupInstances.instances, &instance)
 			h.BackupInstances.ids = append(h.BackupInstances.ids, i.InstanceId)
 		}
 	}
@@ -144,7 +212,7 @@ func wait(checker StateChecker) {
 	}
 }
 
-func (h *Backupper) createAmi() (ImageIds, error) {
+func (h *Backupper) createAmi() error {
 
 	var imageIds ImageIds
 	for _, i := range h.BackupInstances.instances {
@@ -171,12 +239,16 @@ func (h *Backupper) createAmi() (ImageIds, error) {
 			}},
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 		imageIds = append(imageIds, output.ImageId)
+		i.imageId = output.ImageId
+
 		fmt.Println("id:" + *output.ImageId + " name: " + i.name)
 	}
-	return imageIds, nil
+	h.BackupInstances.imageIds = &imageIds
+
+	return nil
 }
 
 func (h *Backupper) addTagsToAmi(imageIds ImageIds, tags []*ec2.Tag) error {
