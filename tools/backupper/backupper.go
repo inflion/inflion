@@ -276,7 +276,8 @@ func (h *Backupper) createAmi() error {
 			}},
 		})
 		if err != nil {
-			return err
+			log.Println(errors.New("failed to create AMI: " + i.name))
+			continue
 		}
 		imageIds = append(imageIds, output.ImageId)
 		i.imageId = output.ImageId
