@@ -23,8 +23,45 @@ func NewBackupper(config Config, client *ec2.EC2, launchTestClient *ec2.EC2) *Ba
 }
 
 func (h *Backupper) Run() error {
+
+	if len(os.Args) == 4 && os.Args[4] == "terminate" {
+		fmt.Println("Getting instance information...")
+		err := h.getBackupTargetInstances([]*ec2.Filter{{
+			Name:   aws.String("tag:LaunchTest"),
+			Values: []*string{aws.String("true")},
+		}}, h.launchTestClient)
+		if err != nil {
+			return err
+		}
+		h.displayInstances()
+
+		fmt.Println("Terminate instances to get AMIs. Do you want to run it? yes/no")
+		fmt.Print("Enter a value: ")
+		ok := askForConfirmation()
+		if !ok {
+			os.Exit(0)
+		}
+
+		fmt.Println("Terminate instances...")
+
+		_, err = h.launchTestClient.TerminateInstances(&ec2.TerminateInstancesInput{
+			InstanceIds: h.BackupInstances.ids,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Waiting for all instances to be terminated...")
+
+		wait(NewInstanceChecker(h.launchTestClient, h.BackupInstances.ids, ec2.InstanceStateNameTerminated))
+
+		fmt.Println("Finished")
+
+		return nil
+	}
+
 	fmt.Println("Getting instance information...")
-	err := h.getBackupTargetInstances(h.config.BackupTargetConfig.BackupTargetFilers)
+	err := h.getBackupTargetInstances(h.config.BackupTargetConfig.BackupTargetFilers, h.client)
 	if err != nil {
 		return err
 	}
@@ -101,7 +138,7 @@ func (h *Backupper) runLaunchTestInstancesInput(instance *BackupInstance) *ec2.R
 					},
 					{
 						Key:   aws.String("LaunchTest"),
-						Value: aws.String("true" + instance.name),
+						Value: aws.String("true"),
 					},
 				},
 			},
@@ -114,7 +151,7 @@ func (h *Backupper) runLaunchTestInstancesInput(instance *BackupInstance) *ec2.R
 					},
 					{
 						Key:   aws.String("LaunchTest"),
-						Value: aws.String("true" + instance.name),
+						Value: aws.String("true"),
 					},
 				},
 			},
@@ -146,8 +183,8 @@ func (h *Backupper) runLaunchTestInstance() {
 
 }
 
-func (h *Backupper) getBackupTargetInstances(filters []*ec2.Filter) error {
-	output, err := h.client.DescribeInstances(&ec2.DescribeInstancesInput{
+func (h *Backupper) getBackupTargetInstances(filters []*ec2.Filter, client *ec2.EC2) error {
+	output, err := client.DescribeInstances(&ec2.DescribeInstancesInput{
 		Filters: filters,
 	})
 	if err != nil {

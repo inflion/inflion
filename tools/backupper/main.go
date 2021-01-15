@@ -15,6 +15,7 @@ func main() {
 
 	conf, err := newConf(confPath)
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(2)
 	}
 
