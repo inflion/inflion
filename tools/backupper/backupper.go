@@ -24,7 +24,7 @@ func NewBackupper(config Config, client *ec2.EC2, launchTestClient *ec2.EC2) *Ba
 
 func (h *Backupper) Run() error {
 
-	if len(os.Args) == 4 && os.Args[4] == "terminate" {
+	if len(os.Args) == 4 && os.Args[3] == "terminate" {
 		fmt.Println("Getting instance information...")
 		err := h.getBackupTargetInstances([]*ec2.Filter{{
 			Name:   aws.String("tag:LaunchTest"),
