@@ -323,9 +323,10 @@ func (h *Backupper) addNameTagToSnapShots(imageIds ImageIds) error {
 	for _, i := range o.Images {
 		for _, mapping := range i.BlockDeviceMappings {
 			// SnapshotId will be nil before AMI is available
-			if mapping.Ebs.SnapshotId == nil {
-				return errors.New("there was no snapshot")
+			if mapping.Ebs == nil || mapping.Ebs.SnapshotId == nil {
+				continue
 			}
+
 			err := h.addTagsToAmi(ImageIds{
 				mapping.Ebs.SnapshotId,
 			}, []*ec2.Tag{
